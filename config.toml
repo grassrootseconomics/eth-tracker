@@ -1,0 +1,15 @@
+[metrics]
+# Exposes Prometheus metrics
+go_process = true
+
+# API server
+[service]
+# Host and port
+address = ":5001"
+
+[chain]
+graphql_endpoint = ""
+ws_endpoint      = "wss://ws.celo.grassecon.net"
+rpc_endpoint     = "https://1rpc.io/4aU926thTN5bM1BJV/celo"
+testnet          = false
+registry_address = ""
