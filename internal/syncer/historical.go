@@ -3,42 +3,71 @@ package syncer
 import (
 	"context"
 	"fmt"
+
+	"github.com/dgraph-io/badger/v4"
 )
 
-func (s *Syncer) BootstrapHistoricalSyncer() {
-	// logg here
-	for i, e := s.db.NextSet(0); e; i, e = s.db.NextSet(i + 1) {
-		if i > 0 {
-			s.batchQueue.PushBack(uint64(i))
+const (
+	blockBatchSize = 100
+)
+
+func (s *Syncer) BootstrapHistoricalSyncer() error {
+	v, err := s.db.GetLowerBound()
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			if err := s.db.SetLowerBound(s.initialLowerBound); err != nil {
+				return err
+			}
+			v = s.initialLowerBound
+		} else {
+			return err
 		}
 	}
+
+	latestBlock, err := s.chain.GetLatestBlock(context.Background())
+	if err != nil {
+		return err
+	}
+	if err := s.db.SetUpperBound(latestBlock); err != nil {
+		return err
+	}
+
+	missingBlocks, err := s.db.GetMissingValuesBitSet(v, latestBlock)
+	if err != nil {
+		return err
+	}
+	missingBlocksCount := missingBlocks.Count()
+	s.logg.Info("bootstrapping historical syncer", "missing_blocks", missingBlocksCount, "lower_bound", v, "upper_bound", latestBlock)
+
+	buffer := make([]uint, missingBlocksCount)
+	missingBlocks.NextSetMany(0, buffer)
+	for _, v := range buffer {
+		s.batchQueue.PushFront(uint64(v))
+	}
+
+	return nil
 }
 
 func (s *Syncer) StartHistoricalSyncer(ctx context.Context) error {
+	s.logg.Info("starting historical syncer", "batch_size", blockBatchSize)
 	for {
 		select {
 		case <-ctx.Done():
 			s.logg.Info("historical syncer shutting down")
 			return nil
 		default:
-			for s.batchQueue.Len() > 0 {
+			if s.batchQueue.Len() > 0 {
 				var (
 					currentIterLen = s.batchQueue.Len()
-					batch          []uint64
 				)
 
-				if currentIterLen < blockBatchSize {
-					batch = make([]uint64, currentIterLen)
-					for i := 0; i < currentIterLen; i++ {
-						v, _ := s.batchQueue.PopFront()
-						batch[i] = v
-					}
-				} else {
-					batch = make([]uint64, blockBatchSize)
-					for i := 0; i < blockBatchSize; i++ {
-						v, _ := s.batchQueue.PopFront()
-						batch[i] = v
-					}
+				if currentIterLen > blockBatchSize {
+					currentIterLen = blockBatchSize
+				}
+				batch := make([]uint64, currentIterLen)
+				for i := 0; i < currentIterLen; i++ {
+					v, _ := s.batchQueue.PopFront()
+					batch[i] = v
 				}
 
 				blocks, err := s.chain.GetBlocks(context.Background(), batch)

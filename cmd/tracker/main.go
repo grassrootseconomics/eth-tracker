@@ -13,10 +13,11 @@ import (
 
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/ef-ds/deque/v2"
-	"github.com/grassrootseconomics/celo-events/internal/chain"
-	"github.com/grassrootseconomics/celo-events/internal/processor"
-	"github.com/grassrootseconomics/celo-events/internal/stats"
-	"github.com/grassrootseconomics/celo-events/internal/syncer"
+	"github.com/grassrootseconomics/celo-tracker/internal/chain"
+	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/processor"
+	"github.com/grassrootseconomics/celo-tracker/internal/stats"
+	"github.com/grassrootseconomics/celo-tracker/internal/syncer"
 	"github.com/knadh/koanf/v2"
 )
 
@@ -59,48 +60,64 @@ func main() {
 		- RealtimeSyncer
 		- BlockProcessor
 	*/
-	stats := stats.NewStats(lo)
+	stats := stats.New(lo)
 
-	chain, err := chain.NewChainProvider(chain.ChainOpts{
+	chain, err := chain.New(chain.ChainOpts{
 		RPCEndpoint: ko.MustString("chain.rpc_endpoint"),
 		TestNet:     ko.Bool("chain.testnet"),
 		Logg:        lo,
 	})
 	if err != nil {
 		lo.Error("could not initialize chain client", "error", err)
+		os.Exit(1)
 	}
 
-	chainSyncer, err := syncer.NewSyncer(syncer.SyncerOpts{
+	db, err := db.New(db.DBOpts{
+		Logg: lo,
+	})
+	if err != nil {
+		lo.Error("could not initialize blocks db", "error", err)
+		os.Exit(1)
+	}
+
+	chainSyncer, err := syncer.New(syncer.SyncerOpts{
 		WebSocketEndpoint: ko.MustString("chain.ws_endpoint"),
 		BatchQueue:        &batchQueue,
 		BlocksQueue:       &blocksQueue,
 		Chain:             chain,
 		Logg:              lo,
 		Stats:             stats,
+		DB:                db,
+		InitialLowerBound: uint64(ko.MustInt64("chain.start_block")),
 	})
 	if err != nil {
 		lo.Error("could not initialize chain syncer", "error", err)
+		os.Exit(1)
 	}
-	// chainSyncer.BootstrapHistoricalSyncer()
+	if err := chainSyncer.BootstrapHistoricalSyncer(); err != nil {
+		lo.Error("could not bootstrap historical syncer", "error", err)
+		os.Exit(1)
+	}
 
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
 		Chain:       chain,
 		BlocksQueue: &blocksQueue,
 		Logg:        lo,
 		Stats:       stats,
+		DB:          db,
 	})
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		chainSyncer.StartHistoricalSyncer(ctx)
+	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		chainSyncer.StartRealtimeSyncer(ctx)
 	}()
-
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	chainSyncer.StartHistoricalSyncer(ctx)
-	// }()
 
 	wg.Add(1)
 	go func() {
@@ -109,12 +126,16 @@ func main() {
 	}()
 
 	<-ctx.Done()
+	lo.Info("shutdown signal received")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), defaultGracefulShutdownPeriod)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		blockProcessor.Stop()
+		if err := db.Close(); err != nil {
+			lo.Error("error closing db", "error", err)
+		}
 	}()
 
 	go func() {

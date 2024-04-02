@@ -39,3 +39,17 @@ func (c *Chain) GetBlock(ctx context.Context, blockNumber uint64) (types.Block, 
 
 	return block, nil
 }
+
+func (c *Chain) GetLatestBlock(ctx context.Context) (uint64, error) {
+	var (
+		latestBlock big.Int
+	)
+
+	latestBlockCall := eth.BlockNumber().Returns(&latestBlock)
+
+	if err := c.provider.Client.CallCtx(ctx, latestBlockCall); err != nil {
+		return 0, err
+	}
+
+	return latestBlock.Uint64(), nil
+}

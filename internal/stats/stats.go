@@ -22,7 +22,7 @@ type (
 	}
 )
 
-func NewStats(logg *slog.Logger) *Stats {
+func New(logg *slog.Logger) *Stats {
 	return &Stats{
 		logg: logg,
 	}

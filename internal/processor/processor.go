@@ -5,12 +5,12 @@ import (
 	"log/slog"
 
 	"github.com/alitto/pond"
-	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/ef-ds/deque/v2"
-	"github.com/grassrootseconomics/celo-events/internal/chain"
-	"github.com/grassrootseconomics/celo-events/internal/pool"
-	"github.com/grassrootseconomics/celo-events/internal/stats"
+	"github.com/grassrootseconomics/celo-tracker/internal/chain"
+	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/pool"
+	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 )
 
 type (
@@ -19,6 +19,7 @@ type (
 		BlocksQueue *deque.Deque[types.Block]
 		Logg        *slog.Logger
 		Stats       *stats.Stats
+		DB          *db.DB
 	}
 
 	Processor struct {
@@ -27,6 +28,7 @@ type (
 		blocksQueue *deque.Deque[types.Block]
 		logg        *slog.Logger
 		stats       *stats.Stats
+		db          *db.DB
 	}
 )
 
@@ -37,17 +39,19 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		blocksQueue: o.BlocksQueue,
 		logg:        o.Logg,
 		stats:       o.Stats,
+		db:          o.DB,
 	}
 }
 
-func (p *Processor) Start(ctx context.Context) error {
+func (p *Processor) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			p.logg.Info("block processor shutting down")
-			return nil
+			p.Stop()
+			return
 		default:
-			for p.blocksQueue.Len() > 0 {
+			if p.blocksQueue.Len() > 0 {
 				v, _ := p.blocksQueue.PopFront()
 				p.pool.Submit(func() {
 					if err := p.processBlock(v); err != nil {
@@ -65,8 +69,9 @@ func (p *Processor) Stop() {
 
 func (p *Processor) processBlock(block types.Block) error {
 	ctx := context.Background()
+	blockNumber := block.NumberU64()
 
-	transactionsResp, err := p.chain.GetTransactions(ctx, block)
+	_, err := p.chain.GetTransactions(ctx, block)
 	if err != nil {
 		return err
 	}
@@ -76,12 +81,16 @@ func (p *Processor) processBlock(block types.Block) error {
 		return err
 	}
 
-	for i, receipt := range receiptsResp {
+	for _, receipt := range receiptsResp {
 		if receipt.Status < 1 {
-			p.logg.Warn("reverted receipt", "tx_hash", receipt.TxHash, "input_data", common.Bytes2Hex(transactionsResp[i].Data()))
+			//
 		}
-		p.logg.Info("successful receipt", "tx_hash", receipt.TxHash, "status", receipt.Status)
 	}
+
+	if err := p.db.SetValue(blockNumber); err != nil {
+		return err
+	}
+	p.logg.Debug("successfully processed block", "block", blockNumber)
 
 	return nil
 }

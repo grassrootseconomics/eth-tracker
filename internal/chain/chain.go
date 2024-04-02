@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func NewChainProvider(o ChainOpts) (*Chain, error) {
+func New(o ChainOpts) (*Chain, error) {
 	providerOpts := celoutils.ProviderOpts{
 		RpcEndpoint: o.RPCEndpoint,
 		ChainId:     celoutils.MainnetChainId,
