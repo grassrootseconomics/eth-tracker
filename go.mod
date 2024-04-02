@@ -6,6 +6,7 @@ require (
 	github.com/alitto/pond v1.8.3
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/celo-org/celo-blockchain v1.8.0
+	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/ef-ds/deque/v2 v2.0.2
 	github.com/grassrootseconomics/celoutils/v2 v2.4.1
 	github.com/grassrootseconomics/w3-celo v0.16.0
@@ -31,7 +32,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
-	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -75,7 +75,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
