@@ -2,9 +2,10 @@ package db
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log/slog"
 
-	"github.com/dgraph-io/badger/v4"
+	bolt "go.etcd.io/bbolt"
 )
 
 type (
@@ -13,7 +14,7 @@ type (
 	}
 
 	DB struct {
-		db   *badger.DB
+		db   *bolt.DB
 		logg *slog.Logger
 	}
 )
@@ -30,12 +31,18 @@ var (
 )
 
 func New(o DBOpts) (*DB, error) {
-	opts := badger.DefaultOptions(dbFolderName)
-	opts.Logger = nil
-	db, err := badger.Open(opts)
+	db, err := bolt.Open(dbFolderName, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("blocks"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
 
 	return &DB{
 		db:   db,
@@ -49,13 +56,10 @@ func (d *DB) Close() error {
 
 func (d *DB) get(k string) ([]byte, error) {
 	var v []byte
-	err := d.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(k))
-		if err != nil {
-			return err
-		}
-		v, err = item.ValueCopy(nil)
-		return err
+	err := d.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("blocks"))
+		v = b.Get([]byte(k))
+		return nil
 	})
 
 	if err != nil {
@@ -66,8 +70,9 @@ func (d *DB) get(k string) ([]byte, error) {
 }
 
 func (d *DB) setUint64(k string, v uint64) error {
-	err := d.db.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(k), marshalUint64(v))
+	err := d.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("blocks"))
+		return b.Put([]byte(k), marshalUint64(v))
 	})
 	if err != nil {
 		return err
@@ -76,8 +81,9 @@ func (d *DB) setUint64(k string, v uint64) error {
 }
 
 func (d *DB) setUint64AsKey(v uint64) error {
-	err := d.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(marshalUint64(v), nil)
+	err := d.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("blocks"))
+		return b.Put(marshalUint64(v), nil)
 	})
 	if err != nil {
 		return err

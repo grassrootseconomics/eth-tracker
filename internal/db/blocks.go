@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/bits-and-blooms/bitset"
-	"github.com/dgraph-io/badger/v4"
+	bolt "go.etcd.io/bbolt"
 )
 
 func (d *DB) SetLowerBound(v uint64) error {
@@ -40,7 +40,7 @@ func (d *DB) GetMissingValuesBitSet(lowerBound uint64, upperBound uint64) (*bits
 		b bitset.BitSet
 	)
 
-	err := d.db.View(func(txn *badger.Txn) error {
+	err := d.db.View(func(tx *bolt.Tx) error {
 		var (
 			lowerRaw = marshalUint64(lowerBound)
 			upperRaw = marshalUint64(upperBound)
@@ -50,19 +50,9 @@ func (d *DB) GetMissingValuesBitSet(lowerBound uint64, upperBound uint64) (*bits
 			b.Set(uint(i))
 		}
 
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchValues = false
+		c := tx.Bucket([]byte("blocks")).Cursor()
 
-		iter := txn.NewIterator(opts)
-		defer iter.Close()
-
-		for iter.Seek(lowerRaw); iter.Valid(); iter.Next() {
-			k := iter.Item().Key()
-
-			if bytes.Compare(k, upperRaw) > 0 {
-				return nil
-			}
-
+		for k, _ := c.Seek(lowerRaw); k != nil && bytes.Compare(k, upperRaw) <= 0; k, _ = c.Next() {
 			b.Clear(uint(unmarshalUint64(k)))
 		}
 
@@ -75,51 +65,51 @@ func (d *DB) GetMissingValuesBitSet(lowerBound uint64, upperBound uint64) (*bits
 	return &b, nil
 }
 
-func (d *DB) Cleanup() error {
-	var (
-		safeToDeleteKeys [][]byte
-	)
+// func (d *DB) Cleanup() error {
+// 	var (
+// 		safeToDeleteKeys [][]byte
+// 	)
 
-	err := d.db.View(func(txn *badger.Txn) error {
-		lowerBound, err := d.get(lowerBoundKey)
-		if err != nil {
-			return err
-		}
+// 	err := d.db.View(func(txn *badger.Txn) error {
+// 		lowerBound, err := d.get(lowerBoundKey)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		lowerBound = marshalUint64(unmarshalUint64(lowerBound) - 1)
+// 		lowerBound = marshalUint64(unmarshalUint64(lowerBound) - 1)
 
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchValues = false
+// 		opts := badger.DefaultIteratorOptions
+// 		opts.PrefetchValues = false
 
-		it := txn.NewIterator(opts)
-		defer it.Close()
+// 		it := txn.NewIterator(opts)
+// 		defer it.Close()
 
-		for it.Rewind(); it.Valid(); it.Next() {
-			k := it.Item().Key()
+// 		for it.Rewind(); it.Valid(); it.Next() {
+// 			k := it.Item().Key()
 
-			if bytes.Compare(k, lowerBound) > 0 {
-				return nil
-			}
+// 			if bytes.Compare(k, lowerBound) > 0 {
+// 				return nil
+// 			}
 
-			safeToDeleteKeys = append(safeToDeleteKeys, it.Item().KeyCopy(nil))
-		}
+// 			safeToDeleteKeys = append(safeToDeleteKeys, it.Item().KeyCopy(nil))
+// 		}
 
-		return nil
-	})
-	if err != nil {
-		return err
-	}
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	wb := d.db.NewWriteBatch()
-	for _, k := range safeToDeleteKeys {
-		if err := wb.Delete(k); err != nil {
-			return nil
-		}
-	}
+// 	wb := d.db.NewWriteBatch()
+// 	for _, k := range safeToDeleteKeys {
+// 		if err := wb.Delete(k); err != nil {
+// 			return nil
+// 		}
+// 	}
 
-	if err := wb.Flush(); err != nil {
-		return err
-	}
+// 	if err := wb.Flush(); err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
