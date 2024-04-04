@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/alitto/pond"
 	"github.com/celo-org/celo-blockchain/core/types"
@@ -32,6 +33,10 @@ type (
 	}
 )
 
+const (
+	emptyQueueIdleTime = 1 * time.Second
+)
+
 func NewProcessor(o ProcessorOpts) *Processor {
 	return &Processor{
 		chain:       o.Chain,
@@ -43,26 +48,21 @@ func NewProcessor(o ProcessorOpts) *Processor {
 	}
 }
 
-func (p *Processor) Start(ctx context.Context) {
+func (p *Processor) Start() {
 	for {
-		select {
-		case <-ctx.Done():
-			p.logg.Info("block processor shutting down")
-			p.Stop()
-			return
-		default:
-			if p.blocksQueue.Len() > 0 {
-				v, _ := p.blocksQueue.PopFront()
-				p.pool.Submit(func() {
-					if err := p.processBlock(v); err != nil {
-						p.logg.Info("block processor error", "block", v.NumberU64(), "error", err)
-					}
-				})
-			}
+		if p.blocksQueue.Len() > 0 {
+			v, _ := p.blocksQueue.PopFront()
+			p.pool.Submit(func() {
+				if err := p.processBlock(v); err != nil {
+					p.logg.Info("block processor error", "block", v.NumberU64(), "error", err)
+				}
+			})
+		} else {
+			time.Sleep(emptyQueueIdleTime)
 		}
 	}
-
 }
+
 func (p *Processor) Stop() {
 	p.pool.StopAndWait()
 }

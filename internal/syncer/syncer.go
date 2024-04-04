@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 
+	"github.com/celo-org/celo-blockchain"
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/celo-org/celo-blockchain/ethclient"
 	"github.com/ef-ds/deque/v2"
@@ -33,6 +34,8 @@ type (
 		ethClient         *ethclient.Client
 		db                *db.DB
 		initialLowerBound uint64
+		//
+		realtimeSub celo.Subscription
 	}
 )
 
