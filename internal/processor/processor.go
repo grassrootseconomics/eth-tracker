@@ -30,6 +30,7 @@ type (
 		logg        *slog.Logger
 		stats       *stats.Stats
 		db          *db.DB
+		quit        chan struct{}
 	}
 )
 
@@ -45,52 +46,38 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		logg:        o.Logg,
 		stats:       o.Stats,
 		db:          o.DB,
+		quit:        make(chan struct{}),
 	}
 }
 
 func (p *Processor) Start() {
 	for {
-		if p.blocksQueue.Len() > 0 {
-			v, _ := p.blocksQueue.PopFront()
-			p.pool.Submit(func() {
-				if err := p.processBlock(v); err != nil {
-					p.logg.Info("block processor error", "block", v.NumberU64(), "error", err)
-				}
-			})
-		} else {
-			time.Sleep(emptyQueueIdleTime)
+		select {
+		case <-p.quit:
+			p.logg.Info("processor stopped, draining workerpool queue")
+			p.pool.StopAndWait()
+			if err := p.db.Close(); err != nil {
+				p.logg.Info("error closing db", "error", err)
+			}
+			return
+		default:
+			if p.blocksQueue.Len() > 0 {
+				v, _ := p.blocksQueue.PopFront()
+				p.pool.Submit(func() {
+					p.logg.Info("processing", "block", v.Number())
+					if err := p.processBlock(context.Background(), v); err != nil {
+						p.logg.Info("block processor error", "block", v.NumberU64(), "error", err)
+					}
+				})
+			} else {
+				time.Sleep(emptyQueueIdleTime)
+				p.logg.Debug("queue empty slept for 1 second")
+			}
 		}
 	}
 }
 
 func (p *Processor) Stop() {
-	p.pool.StopAndWait()
-}
-
-func (p *Processor) processBlock(block types.Block) error {
-	ctx := context.Background()
-	blockNumber := block.NumberU64()
-
-	_, err := p.chain.GetTransactions(ctx, block)
-	if err != nil {
-		return err
-	}
-
-	receiptsResp, err := p.chain.GetReceipts(ctx, block)
-	if err != nil {
-		return err
-	}
-
-	for _, receipt := range receiptsResp {
-		if receipt.Status < 1 {
-			//
-		}
-	}
-
-	if err := p.db.SetValue(blockNumber); err != nil {
-		return err
-	}
-	p.logg.Debug("successfully processed block", "block", blockNumber)
-
-	return nil
+	p.logg.Info("signaling processor shutdown")
+	p.quit <- struct{}{}
 }

@@ -14,7 +14,6 @@ import (
 
 func initLogger() *slog.Logger {
 	loggOpts := logg.LoggOpts{
-		Component:  "tracker",
 		FormatType: logg.Logfmt,
 		LogLevel:   slog.LevelInfo,
 	}

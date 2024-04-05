@@ -21,7 +21,7 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-const defaultGracefulShutdownPeriod = time.Second * 10
+const defaultGracefulShutdownPeriod = time.Second * 15
 
 var (
 	build = "dev"
@@ -43,6 +43,16 @@ func init() {
 }
 
 func main() {
+	// mux := http.NewServeMux()
+	// statsviz.Register(mux)
+
+	// go func() {
+	// 	lo.Info("metrics", "host:port", http.ListenAndServe("localhost:8080", mux))
+	// }()
+	// go func() {
+	// 	lo.Info("profiler", "host:port", http.ListenAndServe("localhost:6060", nil))
+	// }()
+
 	var (
 		batchQueue  deque.Deque[uint64]
 		blocksQueue deque.Deque[types.Block]
@@ -94,10 +104,10 @@ func main() {
 		lo.Error("could not initialize chain syncer", "error", err)
 		os.Exit(1)
 	}
-	if err := chainSyncer.BootstrapHistoricalSyncer(); err != nil {
-		lo.Error("could not bootstrap historical syncer", "error", err)
-		os.Exit(1)
-	}
+	// if err := chainSyncer.BootstrapHistoricalSyncer(); err != nil {
+	// 	lo.Error("could not bootstrap historical syncer", "error", err)
+	// 	os.Exit(1)
+	// }
 
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
 		Chain:       chain,
@@ -107,22 +117,22 @@ func main() {
 		DB:          db,
 	})
 
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	chainSyncer.StartHistoricalSyncer(ctx)
+	// }()
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		chainSyncer.StartHistoricalSyncer(ctx)
+		chainSyncer.StartRealtime()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		chainSyncer.StartRealtimeSyncer(ctx)
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		blockProcessor.Start(ctx)
+		blockProcessor.Start()
 	}()
 
 	<-ctx.Done()
@@ -132,10 +142,13 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		chainSyncer.StopRealtime()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		blockProcessor.Stop()
-		if err := db.Close(); err != nil {
-			lo.Error("error closing db", "error", err)
-		}
 	}()
 
 	go func() {

@@ -4,16 +4,19 @@ go 1.22.1
 
 require (
 	github.com/alitto/pond v1.8.3
+	github.com/arl/statsviz v0.6.0
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/celo-org/celo-blockchain v1.8.0
+	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/ef-ds/deque/v2 v2.0.2
-	github.com/grassrootseconomics/celoutils/v2 v2.4.1
+	github.com/grassrootseconomics/celoutils/v2 v2.4.2
 	github.com/grassrootseconomics/w3-celo v0.16.0
 	github.com/kamikazechaser/common v0.2.0
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v0.1.0
 	github.com/knadh/koanf/providers/file v0.1.0
 	github.com/knadh/koanf/v2 v2.1.0
+	go.etcd.io/bbolt v1.3.9
 )
 
 require (
@@ -31,7 +34,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
-	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -70,7 +72,7 @@ require (
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
