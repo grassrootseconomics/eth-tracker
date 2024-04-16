@@ -10,6 +10,7 @@ import (
 	"github.com/ef-ds/deque/v2"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/handler"
 	"github.com/grassrootseconomics/celo-tracker/internal/pool"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 )
@@ -31,6 +32,7 @@ type (
 		stats       *stats.Stats
 		db          *db.DB
 		quit        chan struct{}
+		handlers    []handler.Handler
 	}
 )
 
@@ -47,6 +49,7 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		stats:       o.Stats,
 		db:          o.DB,
 		quit:        make(chan struct{}),
+		handlers:    handler.New(),
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 )
 
 func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
@@ -24,8 +25,11 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 
 	for i, receipt := range receiptsResp {
 		if receipt.Status > 0 {
-			// test transfers
-			p.chain.TestDecodeTransfer(ctx, receipt.Logs)
+			for _, log := range receipt.Logs {
+				if err := p.handleLogs(ctx, log); err != nil {
+					p.logg.Error("hanlder error", "error", err)
+				}
+			}
 		} else {
 			revertReason, _ := p.chain.GetRevertReason(ctx, receipt.TxHash, receipt.BlockNumber)
 			p.logg.Debug("tx reverted", "hash", receipt.TxHash, "revert_reason", revertReason, "input_data", common.Bytes2Hex(txs[i].Data()))
@@ -38,5 +42,16 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 	}
 	p.logg.Debug("successfully processed block", "block", blockNumber)
 
+	return nil
+}
+
+func (p *Processor) handleLogs(ctx context.Context, log *types.Log) error {
+	defaultEmitter := emitter.New(p.logg)
+
+	for _, handler := range p.handlers {
+		if err := handler.Handle(ctx, log, defaultEmitter); err != nil {
+			return err
+		}
+	}
 	return nil
 }
