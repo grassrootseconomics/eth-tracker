@@ -7,6 +7,7 @@ import (
 
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -24,7 +25,7 @@ type (
 	}
 )
 
-func (h *TransferHandler) Handle(ctx context.Context, log *types.Log, emitFn EmitterEmitFunc) error {
+func (h *TransferHandler) Handle(ctx context.Context, log *types.Log, emitter emitter.Emitter) error {
 	if log.Topics[0] == h.topicHash {
 		var (
 			from  common.Address
@@ -48,7 +49,7 @@ func (h *TransferHandler) Handle(ctx context.Context, log *types.Log, emitFn Emi
 			return err
 		}
 
-		return emitFn(ctx, jsonData)
+		return emitter.Emit(ctx, jsonData)
 	}
 
 	return nil

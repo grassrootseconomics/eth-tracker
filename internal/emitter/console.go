@@ -7,12 +7,18 @@ import (
 )
 
 type (
-	LogEmitter struct {
+	ConsoleEmitter struct {
 		logg *slog.Logger
 	}
 )
 
-func (l *LogEmitter) Emit(_ context.Context, payload []byte) error {
+func NewConsoleEmitter(logg *slog.Logger) *ConsoleEmitter {
+	return &ConsoleEmitter{
+		logg: logg,
+	}
+}
+
+func (l *ConsoleEmitter) Emit(_ context.Context, payload []byte) error {
 	var event map[string]interface{}
 
 	if err := json.Unmarshal(payload, &event); err != nil {

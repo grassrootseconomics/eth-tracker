@@ -46,7 +46,9 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 }
 
 func (p *Processor) handleLogs(ctx context.Context, log *types.Log) error {
-	defaultEmitter := emitter.New(p.logg)
+	defaultEmitter := emitter.New(emitter.EmitterOpts{
+		Logg: p.logg,
+	})
 
 	for _, handler := range p.handlers {
 		if err := handler.Handle(ctx, log, defaultEmitter); err != nil {

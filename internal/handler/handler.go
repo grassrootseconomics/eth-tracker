@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
 type (
-	EmitterEmitFunc func(context.Context, []byte) error
-
 	Handler interface {
-		Handle(context.Context, *types.Log, EmitterEmitFunc) error
+		Handle(context.Context, *types.Log, emitter.Emitter) error
 	}
 )
 

@@ -1,15 +1,20 @@
 package emitter
 
 import (
+	"context"
 	"log/slog"
-
-	"github.com/grassrootseconomics/celo-tracker/internal/handler"
 )
 
-func New(logg *slog.Logger) handler.EmitterEmitFunc {
-	stdOutEmitter := &LogEmitter{
-		logg: logg,
+type (
+	Emitter interface {
+		Emit(context.Context, []byte) error
 	}
 
-	return stdOutEmitter.Emit
+	EmitterOpts struct {
+		Logg *slog.Logger
+	}
+)
+
+func New(o EmitterOpts) Emitter {
+	return NewConsoleEmitter(o.Logg)
 }
