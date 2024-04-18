@@ -10,49 +10,49 @@ import (
 )
 
 type (
-	BurnHandler struct {
+	TokenBurnHandler struct {
 		topicHash common.Hash
 		event     *w3.Event
 	}
 )
 
 var (
-	burnTopicHash = w3.H("0xcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca5")
-	burnEvent     = w3.MustNewEvent("Burn(address indexed _burner, uint256 _value)")
-	burnToSig     = w3.MustNewFunc("burn(uint256)", "bool")
+	tokenBurnTopicHash = w3.H("0xcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca5")
+	tokenBurnEvent     = w3.MustNewEvent("tokenBurn(address indexed _tokenBurner, uint256 _value)")
+	tokenBurnToSig     = w3.MustNewFunc("tokenBurn(uint256)", "bool")
 )
 
-func (h *BurnHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
-	if msg.Log.Topics[0] == burnTopicHash {
+func (h *TokenBurnHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+	if msg.Log.Topics[0] == tokenBurnTopicHash {
 		var (
-			burner common.Address
-			value  big.Int
+			tokenBurner common.Address
+			value       big.Int
 		)
 
-		if err := burnEvent.DecodeArgs(msg.Log, &burner, &value); err != nil {
+		if err := tokenBurnEvent.DecodeArgs(msg.Log, &tokenBurner, &value); err != nil {
 			return err
 		}
 
-		burnEvent := Event{
+		tokenBurnEvent := Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "BURN",
+			TxType:          "TOKEN_BURN",
 			Payload: map[string]any{
-				"burner": burner.Hex(),
-				"value":  value.String(),
+				"tokenBurner": tokenBurner.Hex(),
+				"value":       value.String(),
 			},
 		}
 
-		return emitter.Emit(ctx, burnEvent)
+		return emitter.Emit(ctx, tokenBurnEvent)
 	}
 
 	return nil
 }
 
-func (h *BurnHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *TokenBurnHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -63,25 +63,25 @@ func (h *BurnHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitt
 			value big.Int
 		)
 
-		if err := burnToSig.DecodeArgs(w3.B(msg.InputData), &value); err != nil {
+		if err := tokenBurnToSig.DecodeArgs(w3.B(msg.InputData), &value); err != nil {
 			return err
 		}
 
-		burnEvent := Event{
+		tokenBurnEvent := Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "BURN",
+			TxType:          "TOKEN_BURN",
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
-				"burner":       msg.From,
+				"tokenBurner":  msg.From,
 				"value":        value.String(),
 			},
 		}
 
-		return emitter.Emit(ctx, burnEvent)
+		return emitter.Emit(ctx, tokenBurnEvent)
 	}
 
 	return nil

@@ -10,38 +10,38 @@ import (
 )
 
 type (
-	TransferHandler struct {
+	TokenTransferHandler struct {
 		topicHash common.Hash
 		event     *w3.Event
 	}
 )
 
 var (
-	transferTopicHash = w3.H("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-	transferEvent     = w3.MustNewEvent("Transfer(address indexed _from, address indexed _to, uint256 _value)")
-	transferSig       = w3.MustNewFunc("transfer(address, uint256)", "bool")
-	transferFromSig   = w3.MustNewFunc("transferFrom(address, address, uint256)", "bool")
+	tokenTransferTopicHash = w3.H("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+	tokenTransferEvent     = w3.MustNewEvent("tokenTransfer(address indexed _from, address indexed _to, uint256 _value)")
+	tokenTransferSig       = w3.MustNewFunc("tokenTransfer(address, uint256)", "bool")
+	tokenTransferFromSig   = w3.MustNewFunc("tokenTransferFrom(address, address, uint256)", "bool")
 )
 
-func (h *TransferHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
-	if msg.Log.Topics[0] == transferTopicHash {
+func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+	if msg.Log.Topics[0] == tokenTransferTopicHash {
 		var (
 			from  common.Address
 			to    common.Address
 			value big.Int
 		)
 
-		if err := transferEvent.DecodeArgs(msg.Log, &from, &to, &value); err != nil {
+		if err := tokenTransferEvent.DecodeArgs(msg.Log, &from, &to, &value); err != nil {
 			return err
 		}
 
-		transferEvent := Event{
+		tokenTransferEvent := Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "TRANSFER",
+			TxType:          "TOKEN_TRANSFER",
 			Payload: map[string]any{
 				"from":  from.Hex(),
 				"to":    to.Hex(),
@@ -49,13 +49,13 @@ func (h *TransferHandler) HandleLog(ctx context.Context, msg LogMessage, emitter
 			},
 		}
 
-		return emitter.Emit(ctx, transferEvent)
+		return emitter.Emit(ctx, tokenTransferEvent)
 	}
 
 	return nil
 }
 
-func (h *TransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -67,17 +67,17 @@ func (h *TransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			value big.Int
 		)
 
-		if err := transferSig.DecodeArgs(w3.B(msg.InputData), &to, &value); err != nil {
+		if err := tokenTransferSig.DecodeArgs(w3.B(msg.InputData), &to, &value); err != nil {
 			return err
 		}
 
-		transferEvent := Event{
+		tokenTransferEvent := Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TRANSFER",
+			TxType:          "TOKEN_TRANSFER",
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"from":         msg.From,
@@ -86,7 +86,7 @@ func (h *TransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			},
 		}
 
-		return emitter.Emit(ctx, transferEvent)
+		return emitter.Emit(ctx, tokenTransferEvent)
 	case "23b872dd":
 		var (
 			from  common.Address
@@ -94,17 +94,17 @@ func (h *TransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			value big.Int
 		)
 
-		if err := transferFromSig.DecodeArgs(w3.B(msg.InputData), &from, &to, &value); err != nil {
+		if err := tokenTransferFromSig.DecodeArgs(w3.B(msg.InputData), &from, &to, &value); err != nil {
 			return err
 		}
 
-		transferEvent := Event{
+		tokenTransferEvent := Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TRANSFER",
+			TxType:          "TOKEN_TRANSFER",
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"from":         from.Hex(),
@@ -113,7 +113,7 @@ func (h *TransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			},
 		}
 
-		return emitter.Emit(ctx, transferEvent)
+		return emitter.Emit(ctx, tokenTransferEvent)
 	}
 
 	return nil

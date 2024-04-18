@@ -79,8 +79,9 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			TxType:          "FAUCET_GIVE",
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
-				"from":         msg.From,
-				"to":           to.Hex(),
+				"recipient":    to.Hex(),
+				"token":        common.ZeroAddress.Hex(),
+				"amount":       "0",
 			},
 		}
 
@@ -95,7 +96,9 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			TxType:          "FAUCET_GIVE",
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
-				"from":         msg.From,
+				"recipient":    common.ZeroAddress.Hex(),
+				"token":        common.ZeroAddress.Hex(),
+				"amount":       "0",
 			},
 		}
 

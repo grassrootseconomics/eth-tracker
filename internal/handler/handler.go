@@ -41,6 +41,6 @@ type (
 
 func New() []Handler {
 	return []Handler{
-		&TransferHandler{},
+		&TokenTransferHandler{},
 	}
 }
