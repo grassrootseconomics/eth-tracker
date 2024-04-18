@@ -7,7 +7,7 @@ import (
 
 type (
 	Emitter interface {
-		Emit(context.Context, []byte) error
+		Emit(context.Context, interface{}) error
 	}
 
 	EmitterOpts struct {

@@ -18,13 +18,12 @@ func NewConsoleEmitter(logg *slog.Logger) *ConsoleEmitter {
 	}
 }
 
-func (l *ConsoleEmitter) Emit(_ context.Context, payload []byte) error {
-	var event map[string]interface{}
-
-	if err := json.Unmarshal(payload, &event); err != nil {
+func (l *ConsoleEmitter) Emit(_ context.Context, payload interface{}) error {
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
 		return err
 	}
 
-	l.logg.Info("emitted event", "json_payload", event)
+	l.logg.Info("emitted event", "json_payload", string(jsonData))
 	return nil
 }

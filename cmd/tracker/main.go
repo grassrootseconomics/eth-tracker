@@ -16,6 +16,7 @@ import (
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 	"github.com/grassrootseconomics/celo-tracker/internal/processor"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 	"github.com/grassrootseconomics/celo-tracker/internal/syncer"
@@ -120,6 +121,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	defaultEmitter := emitter.New(emitter.EmitterOpts{
+		Logg: lo,
+	})
+
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
 		Chain:       chain,
 		BlocksQueue: &blocksQueue,
@@ -127,6 +132,7 @@ func main() {
 		Stats:       stats,
 		DB:          db,
 		Cache:       cache,
+		Emitter:     defaultEmitter,
 	})
 
 	// wg.Add(1)

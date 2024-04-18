@@ -11,6 +11,7 @@ import (
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 	"github.com/grassrootseconomics/celo-tracker/internal/handler"
 	"github.com/grassrootseconomics/celo-tracker/internal/pool"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
@@ -24,6 +25,7 @@ type (
 		Stats       *stats.Stats
 		DB          *db.DB
 		Cache       cache.Cache
+		Emitter     emitter.Emitter
 	}
 
 	Processor struct {
@@ -36,6 +38,7 @@ type (
 		quit        chan struct{}
 		handlers    []handler.Handler
 		cache       cache.Cache
+		emitter     emitter.Emitter
 	}
 )
 
@@ -54,6 +57,7 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		quit:        make(chan struct{}),
 		handlers:    handler.New(),
 		cache:       o.Cache,
+		emitter:     o.Emitter,
 	}
 }
 
