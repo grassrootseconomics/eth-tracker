@@ -8,6 +8,7 @@ import (
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celoutils/v2"
 	"github.com/grassrootseconomics/w3-celo"
+	"github.com/grassrootseconomics/w3-celo/module/eth"
 )
 
 type (
@@ -24,6 +25,10 @@ type (
 		CacheType  string
 		Registries []string
 	}
+)
+
+var (
+	tokenRegistryFunc = w3.MustNewFunc("tokenRegistry()", "address")
 )
 
 func New(o CacheOpts) (Cache, error) {
@@ -68,9 +73,28 @@ func New(o CacheOpts) (Cache, error) {
 
 			for _, pool := range pools {
 				cache.Add(pool.Hex())
+
+				var (
+					poolTokenRegistry common.Address
+				)
+				err := o.Chain.Provider.Client.CallCtx(
+					ctx,
+					eth.CallFunc(pool, tokenRegistryFunc).Returns(&poolTokenRegistry),
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				poolTokens, err := o.Chain.GetAllTokensFromTokenIndex(ctx, poolTokenRegistry)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, token := range poolTokens {
+					cache.Add(token.Hex())
+				}
 			}
 		}
-
 	}
 	o.Logg.Debug("cache bootstrap complete", "cached_addresses", cache.Size())
 

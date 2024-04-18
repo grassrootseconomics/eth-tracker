@@ -26,14 +26,17 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 	for i, receipt := range receiptsResp {
 		if receipt.Status > 0 {
 			for _, log := range receipt.Logs {
-				if err := p.handleLogs(ctx, log); err != nil {
-					p.logg.Error("hanlder error", "error", err)
+				if p.cache.Exists(log.Address.Hex()) {
+					if err := p.handleLogs(ctx, log); err != nil {
+						p.logg.Error("hanlder error", "error", err)
+					}
 				}
 			}
 		} else {
-			revertReason, _ := p.chain.GetRevertReason(ctx, receipt.TxHash, receipt.BlockNumber)
-			p.logg.Debug("tx reverted", "hash", receipt.TxHash, "revert_reason", revertReason, "input_data", common.Bytes2Hex(txs[i].Data()))
-
+			if p.cache.Exists(txs[i].To().Hex()) {
+				revertReason, _ := p.chain.GetRevertReason(ctx, receipt.TxHash, receipt.BlockNumber)
+				p.logg.Debug("tx reverted", "hash", receipt.TxHash, "revert_reason", revertReason, "input_data", common.Bytes2Hex(txs[i].Data()))
+			}
 		}
 	}
 
