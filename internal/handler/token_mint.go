@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	mintEventName = "TOKEN_MINT"
+)
+
 var (
 	tokenMintTopicHash = w3.H("0xab8530f87dc9b59234c4623bf917212bb2536d647574c8e7e5da92c2ede0c9f8")
 	tokenMintEvent     = w3.MustNewEvent("tokenMint(address indexed _tokenMinter, address indexed _beneficiary, uint256 _value)")
 	tokenMintToSig     = w3.MustNewFunc("tokenMintTo(address, uint256)", "bool")
 )
+
+func (h *TokenMintHandler) Name() string {
+	return mintEventName
+}
 
 func (h *TokenMintHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == tokenMintTopicHash {
@@ -40,7 +48,7 @@ func (h *TokenMintHandler) HandleLog(ctx context.Context, msg LogMessage, emitte
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "TOKEN_MINT",
+			TxType:          mintEventName,
 			Payload: map[string]any{
 				"tokenMinter": tokenMinter.Hex(),
 				"to":          to.Hex(),
@@ -76,7 +84,7 @@ func (h *TokenMintHandler) HandleRevert(ctx context.Context, msg RevertMessage, 
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TOKEN_MINT",
+			TxType:          mintEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"tokenMinter":  msg.From,

@@ -16,12 +16,20 @@ type (
 	}
 )
 
+const (
+	transferEventName = "TOKEN_TRANSFER"
+)
+
 var (
 	tokenTransferTopicHash = w3.H("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-	tokenTransferEvent     = w3.MustNewEvent("tokenTransfer(address indexed _from, address indexed _to, uint256 _value)")
-	tokenTransferSig       = w3.MustNewFunc("tokenTransfer(address, uint256)", "bool")
-	tokenTransferFromSig   = w3.MustNewFunc("tokenTransferFrom(address, address, uint256)", "bool")
+	tokenTransferEvent     = w3.MustNewEvent("Transfer(address indexed _from, address indexed _to, uint256 _value)")
+	tokenTransferSig       = w3.MustNewFunc("transfer(address, uint256)", "bool")
+	tokenTransferFromSig   = w3.MustNewFunc("transferFrom(address, address, uint256)", "bool")
 )
+
+func (h *TokenTransferHandler) Name() string {
+	return transferEventName
+}
 
 func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == tokenTransferTopicHash {
@@ -41,7 +49,7 @@ func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, em
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "TOKEN_TRANSFER",
+			TxType:          transferEventName,
 			Payload: map[string]any{
 				"from":  from.Hex(),
 				"to":    to.Hex(),
@@ -77,7 +85,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TOKEN_TRANSFER",
+			TxType:          transferEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"from":         msg.From,
@@ -104,7 +112,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TOKEN_TRANSFER",
+			TxType:          transferEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"from":         from.Hex(),

@@ -9,6 +9,7 @@ import (
 
 type (
 	Handler interface {
+		Name() string
 		HandleLog(context.Context, LogMessage, emitter.Emitter) error
 		HandleRevert(context.Context, RevertMessage, emitter.Emitter) error
 	}
@@ -42,5 +43,7 @@ type (
 func New() []Handler {
 	return []Handler{
 		&TokenTransferHandler{},
+		&TokenMintHandler{},
+		&TokenBurnHandler{},
 	}
 }

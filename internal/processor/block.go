@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/celo-org/celo-blockchain/core/types"
@@ -33,7 +34,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 					}
 
 					if err := p.handleLogs(ctx, msg); err != nil {
-						p.logg.Error("handler error", "handler_type", "log", "error", err)
+						p.logg.Error("handler error", "handler_type", "log", "handler_name", "error", err)
 					}
 				}
 			}
@@ -77,7 +78,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 func (p *Processor) handleLogs(ctx context.Context, msg handler.LogMessage) error {
 	for _, handler := range p.handlers {
 		if err := handler.HandleLog(ctx, msg, p.emitter); err != nil {
-			return err
+			return fmt.Errorf("handler: %s err: %v", handler.Name(), err)
 		}
 	}
 
@@ -87,7 +88,7 @@ func (p *Processor) handleLogs(ctx context.Context, msg handler.LogMessage) erro
 func (p *Processor) handleRevert(ctx context.Context, msg handler.RevertMessage) error {
 	for _, handler := range p.handlers {
 		if err := handler.HandleRevert(ctx, msg, p.emitter); err != nil {
-			return err
+			return fmt.Errorf("handler: %s err: %v", handler.Name(), err)
 		}
 	}
 

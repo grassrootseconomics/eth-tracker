@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	burnEventName = "TOKEN_BURN"
+)
+
 var (
 	tokenBurnTopicHash = w3.H("0xcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca5")
 	tokenBurnEvent     = w3.MustNewEvent("tokenBurn(address indexed _tokenBurner, uint256 _value)")
 	tokenBurnToSig     = w3.MustNewFunc("tokenBurn(uint256)", "bool")
 )
+
+func (h *TokenBurnHandler) Name() string {
+	return burnEventName
+}
 
 func (h *TokenBurnHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == tokenBurnTopicHash {
@@ -39,7 +47,7 @@ func (h *TokenBurnHandler) HandleLog(ctx context.Context, msg LogMessage, emitte
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "TOKEN_BURN",
+			TxType:          burnEventName,
 			Payload: map[string]any{
 				"tokenBurner": tokenBurner.Hex(),
 				"value":       value.String(),
@@ -73,7 +81,7 @@ func (h *TokenBurnHandler) HandleRevert(ctx context.Context, msg RevertMessage, 
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "TOKEN_BURN",
+			TxType:          burnEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"tokenBurner":  msg.From,
