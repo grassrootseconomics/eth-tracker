@@ -19,7 +19,7 @@ func (c *Chain) GetBlocks(ctx context.Context, blockNumbers []uint64) ([]types.B
 		calls[i] = eth.BlockByNumber(new(big.Int).SetUint64(v)).Returns(&blocks[i])
 	}
 
-	if err := c.provider.Client.CallCtx(ctx, calls...); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, calls...); err != nil {
 		return nil, err
 	}
 
@@ -33,7 +33,7 @@ func (c *Chain) GetBlock(ctx context.Context, blockNumber uint64) (types.Block, 
 
 	blockCall := eth.BlockByNumber(new(big.Int).SetUint64(blockNumber)).Returns(&block)
 
-	if err := c.provider.Client.CallCtx(ctx, blockCall); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, blockCall); err != nil {
 		return block, err
 	}
 
@@ -47,7 +47,7 @@ func (c *Chain) GetLatestBlock(ctx context.Context) (uint64, error) {
 
 	latestBlockCall := eth.BlockNumber().Returns(&latestBlock)
 
-	if err := c.provider.Client.CallCtx(ctx, latestBlockCall); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, latestBlockCall); err != nil {
 		return 0, err
 	}
 

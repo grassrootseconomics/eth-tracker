@@ -13,6 +13,7 @@ import (
 
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/ef-ds/deque/v2"
+	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
 	"github.com/grassrootseconomics/celo-tracker/internal/processor"
@@ -98,7 +99,7 @@ func main() {
 		Logg:              lo,
 		Stats:             stats,
 		DB:                db,
-		InitialLowerBound: uint64(ko.MustInt64("chain.start_block")),
+		InitialLowerBound: uint64(ko.MustInt64("bootstrap.start_block")),
 	})
 	if err != nil {
 		lo.Error("could not initialize chain syncer", "error", err)
@@ -109,12 +110,23 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	cache, err := cache.New(cache.CacheOpts{
+		Logg:       lo,
+		Chain:      chain,
+		Registries: ko.MustStrings("bootstrap.registries"),
+	})
+	if err != nil {
+		lo.Error("could not initialize cache", "error", err)
+		os.Exit(1)
+	}
+
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
 		Chain:       chain,
 		BlocksQueue: &blocksQueue,
 		Logg:        lo,
 		Stats:       stats,
 		DB:          db,
+		Cache:       cache,
 	})
 
 	// wg.Add(1)

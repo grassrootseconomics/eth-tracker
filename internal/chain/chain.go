@@ -14,7 +14,7 @@ type (
 	}
 
 	Chain struct {
-		provider *celoutils.Provider
+		Provider *celoutils.Provider
 		logg     *slog.Logger
 	}
 )
@@ -35,7 +35,7 @@ func New(o ChainOpts) (*Chain, error) {
 	}
 
 	return &Chain{
-		provider: provider,
+		Provider: provider,
 		logg:     o.Logg,
 	}, nil
 }

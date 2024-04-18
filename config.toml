@@ -1,16 +1,18 @@
 [metrics]
-# Exposes Prometheus metrics
 go_process = true
 
-# API server
-[service]
-# Host and port
+[api]
 address = ":5001"
 
 [chain]
-start_block = 24905000
-graphql_endpoint = ""
 ws_endpoint = "wss://ws.celo.grassecon.net"
 rpc_endpoint = "https://rpc.ankr.com/celo/bae2b7745f52c50974d7ecb1a7c23dc05d9ab5b68caf498a7c73f09a3e8bc04a"
 testnet = false
-registry_address = ""
+
+[bootstrap]
+start_block = 24905000
+# https://software.grassecon.org/addresses
+registries = [
+    "0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C",
+    "0x0cc9f4fff962def35bb34a53691180b13e653030",
+]

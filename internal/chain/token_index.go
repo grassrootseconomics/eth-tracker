@@ -20,7 +20,7 @@ func (c *Chain) GetAllTokensFromTokenIndex(ctx context.Context, tokenIndex commo
 		tokenIndexEntryCount big.Int
 	)
 
-	if err := c.provider.Client.CallCtx(
+	if err := c.Provider.Client.CallCtx(
 		ctx,
 		eth.CallFunc(tokenIndex, entryCountFunc).Returns(&tokenIndexEntryCount),
 	); err != nil {
@@ -34,7 +34,7 @@ func (c *Chain) GetAllTokensFromTokenIndex(ctx context.Context, tokenIndex commo
 		calls[i] = eth.CallFunc(tokenIndex, entrySig, new(big.Int).SetInt64(int64(i))).Returns(&tokenAddresses[i])
 	}
 
-	if err := c.provider.Client.CallCtx(ctx, calls...); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, calls...); err != nil {
 		return nil, err
 	}
 

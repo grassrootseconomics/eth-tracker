@@ -8,5 +8,5 @@ import (
 )
 
 func (c *Chain) GetRevertReason(ctx context.Context, txHash common.Hash, blockNumber *big.Int) (string, error) {
-	return c.provider.SimulateRevertedTx(ctx, txHash, blockNumber)
+	return c.Provider.SimulateRevertedTx(ctx, txHash, blockNumber)
 }

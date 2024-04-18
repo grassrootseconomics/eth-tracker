@@ -8,6 +8,7 @@ import (
 	"github.com/alitto/pond"
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/ef-ds/deque/v2"
+	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
 	"github.com/grassrootseconomics/celo-tracker/internal/handler"
@@ -22,6 +23,7 @@ type (
 		Logg        *slog.Logger
 		Stats       *stats.Stats
 		DB          *db.DB
+		Cache       cache.Cache
 	}
 
 	Processor struct {
@@ -33,6 +35,7 @@ type (
 		db          *db.DB
 		quit        chan struct{}
 		handlers    []handler.Handler
+		cache       cache.Cache
 	}
 )
 
@@ -50,10 +53,12 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		db:          o.DB,
 		quit:        make(chan struct{}),
 		handlers:    handler.New(),
+		cache:       o.Cache,
 	}
 }
 
 func (p *Processor) Start() {
+	p.logg.Info("processor started")
 	for {
 		select {
 		case <-p.quit:
@@ -67,7 +72,7 @@ func (p *Processor) Start() {
 			if p.blocksQueue.Len() > 0 {
 				v, _ := p.blocksQueue.PopFront()
 				p.pool.Submit(func() {
-					p.logg.Info("processing", "block", v.Number())
+					p.logg.Debug("processing", "block", v.Number())
 					if err := p.processBlock(context.Background(), v); err != nil {
 						p.logg.Info("block processor error", "block", v.NumberU64(), "error", err)
 					}

@@ -9,7 +9,7 @@ require (
 	github.com/celo-org/celo-blockchain v1.8.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/ef-ds/deque/v2 v2.0.2
-	github.com/grassrootseconomics/celoutils/v2 v2.4.2
+	github.com/grassrootseconomics/celoutils/v2 v2.6.0
 	github.com/grassrootseconomics/w3-celo v0.16.0
 	github.com/kamikazechaser/common v0.2.0
 	github.com/knadh/koanf/parsers/toml v0.1.0

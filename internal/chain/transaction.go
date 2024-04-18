@@ -18,7 +18,7 @@ func (c *Chain) GetTransactions(ctx context.Context, block types.Block) ([]types
 		calls[i] = eth.Tx(tx.Hash()).Returns(&transactions[i])
 	}
 
-	if err := c.provider.Client.CallCtx(ctx, calls...); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, calls...); err != nil {
 		return nil, err
 	}
 
@@ -35,7 +35,7 @@ func (c *Chain) GetReceipts(ctx context.Context, block types.Block) ([]types.Rec
 		calls[i] = eth.TxReceipt(tx.Hash()).Returns(&receipts[i])
 	}
 
-	if err := c.provider.Client.CallCtx(ctx, calls...); err != nil {
+	if err := c.Provider.Client.CallCtx(ctx, calls...); err != nil {
 		return nil, err
 	}
 
