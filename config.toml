@@ -16,3 +16,4 @@ registries = [
     "0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C",
     "0x0cc9f4fff962def35bb34a53691180b13e653030",
 ]
+blacklist = ["0x765DE816845861e75A25fCA122bb6898B8B1282a"]

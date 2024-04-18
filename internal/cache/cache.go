@@ -12,7 +12,10 @@ type (
 	Cache interface {
 		Purge() error
 		Exists(string) bool
-		Add(string) bool
+		Add(string)
+		Remove(string)
+		SetWatchableIndex(WatchableIndex)
+		ISWatchAbleIndex(string) bool
 		Size() int
 	}
 
@@ -21,7 +24,10 @@ type (
 		Chain      *chain.Chain
 		CacheType  string
 		Registries []string
+		Blacklist  []string
 	}
+
+	WatchableIndex map[string]bool
 )
 
 var (
@@ -41,14 +47,21 @@ func New(o CacheOpts) (Cache, error) {
 		cache = NewMapCache()
 	}
 
-	if err := bootstrapAllGESmartContracts(
+	watchableIndex, err := bootstrapAllGESmartContracts(
 		context.Background(),
 		o.Registries,
 		o.Chain,
 		cache,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
+	cache.SetWatchableIndex(watchableIndex)
+
+	for _, address := range o.Blacklist {
+		cache.Remove(address)
+	}
+
 	o.Logg.Debug("cache bootstrap complete", "cached_addresses", cache.Size())
 
 	return cache, nil

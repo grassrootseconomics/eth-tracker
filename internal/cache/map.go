@@ -8,8 +8,9 @@ import (
 
 type (
 	MapCache struct {
-		mapCache *xsync.Map
-		logg     *slog.Logger
+		mapCache       *xsync.Map
+		logg           *slog.Logger
+		watchableIndex WatchableIndex
 	}
 )
 
@@ -29,11 +30,23 @@ func (c *MapCache) Exists(key string) bool {
 	return ok
 }
 
-func (c *MapCache) Add(key string) bool {
+func (c *MapCache) Add(key string) {
 	c.mapCache.Store(key, nil)
-	return true
+}
+
+func (c *MapCache) Remove(key string) {
+	c.mapCache.Delete(key)
 }
 
 func (c *MapCache) Size() int {
 	return c.mapCache.Size()
+}
+
+func (c *MapCache) SetWatchableIndex(watchableIndex WatchableIndex) {
+	c.watchableIndex = watchableIndex
+}
+
+func (c *MapCache) ISWatchAbleIndex(key string) bool {
+	_, ok := c.watchableIndex[key]
+	return ok
 }
