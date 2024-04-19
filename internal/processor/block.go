@@ -13,13 +13,11 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 	blockNumber := block.NumberU64()
 
 	txs, err := p.chain.GetTransactions(ctx, block)
-	p.logg.Debug("successfully fetched transactions", "txs", len(txs))
 	if err != nil {
 		return err
 	}
 
 	receiptsResp, err := p.chain.GetReceipts(ctx, block)
-	p.logg.Debug("successfully fetched receipts", "receipts", len(txs))
 	if err != nil {
 		return err
 	}
@@ -42,7 +40,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 			if p.cache.Exists(txs[i].To().Hex()) {
 				from, err := types.Sender(types.LatestSignerForChainID(txs[i].ChainId()), &txs[i])
 				if err != nil {
-					p.logg.Error("hanlder error", "handler_type", "revert", "error", err)
+					p.logg.Error("handler error", "handler_type", "revert", "error", err)
 				}
 
 				revertReason, err := p.chain.GetRevertReason(ctx, receipt.TxHash, receipt.BlockNumber)

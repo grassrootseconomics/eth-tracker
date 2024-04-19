@@ -10,7 +10,7 @@ import (
 	"github.com/grassrootseconomics/w3-celo/module/eth"
 )
 
-func bootstrapAllGESmartContracts(ctx context.Context, registries []string, chain *chain.Chain, cache Cache) (WatchableIndex, error) {
+func bootstrapGESmartContracts(ctx context.Context, registries []string, chain *chain.Chain, cache Cache) (WatchableIndex, error) {
 	var (
 		watchableIndex = make(WatchableIndex)
 	)

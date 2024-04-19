@@ -25,6 +25,7 @@ type (
 		CacheType  string
 		Registries []string
 		Blacklist  []string
+		Watchlist  []string
 	}
 
 	WatchableIndex map[string]bool
@@ -47,7 +48,7 @@ func New(o CacheOpts) (Cache, error) {
 		cache = NewMapCache()
 	}
 
-	watchableIndex, err := bootstrapAllGESmartContracts(
+	watchableIndex, err := bootstrapGESmartContracts(
 		context.Background(),
 		o.Registries,
 		o.Chain,
@@ -56,12 +57,16 @@ func New(o CacheOpts) (Cache, error) {
 	if err != nil {
 		return nil, err
 	}
+	// We only watch the token and pool indexes
+	// If at some point we want to eatch the user index, this line should be removed
 	cache.SetWatchableIndex(watchableIndex)
 
+	for _, address := range o.Watchlist {
+		cache.Add(address)
+	}
 	for _, address := range o.Blacklist {
 		cache.Remove(address)
 	}
-
 	o.Logg.Debug("cache bootstrap complete", "cached_addresses", cache.Size())
 
 	return cache, nil

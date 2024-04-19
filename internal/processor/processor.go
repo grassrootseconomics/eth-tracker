@@ -83,7 +83,7 @@ func (p *Processor) Start() {
 				})
 			} else {
 				time.Sleep(emptyQueueIdleTime)
-				p.logg.Debug("queue empty slept for 1 second")
+				p.logg.Debug("processor queue empty slept for 1 second")
 			}
 		}
 	}

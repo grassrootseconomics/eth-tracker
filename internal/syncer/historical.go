@@ -3,41 +3,31 @@ package syncer
 import (
 	"context"
 	"fmt"
-
-	"github.com/dgraph-io/badger/v4"
+	"time"
 )
 
 const (
-	blockBatchSize = 100
+	blockBatchSize     = 100
+	emptyQueueIdelTime = 2 * time.Second
 )
 
 func (s *Syncer) BootstrapHistoricalSyncer() error {
-	v, err := s.db.GetLowerBound()
-	if err != nil {
-		if err == badger.ErrKeyNotFound {
-			if err := s.db.SetLowerBound(s.initialLowerBound); err != nil {
-				return err
-			}
-			v = s.initialLowerBound
-		} else {
-			return err
-		}
-	}
-
-	latestBlock, err := s.chain.GetLatestBlock(context.Background())
+	lower, err := s.db.GetLowerBound()
 	if err != nil {
 		return err
 	}
-	if err := s.db.SetUpperBound(latestBlock); err != nil {
+
+	upper, err := s.db.GetUpperBound()
+	if err != nil {
 		return err
 	}
 
-	missingBlocks, err := s.db.GetMissingValuesBitSet(v, latestBlock)
+	missingBlocks, err := s.db.GetMissingValuesBitSet(lower, upper)
 	if err != nil {
 		return err
 	}
 	missingBlocksCount := missingBlocks.Count()
-	s.logg.Info("bootstrapping historical syncer", "missing_blocks", missingBlocksCount, "lower_bound", v, "upper_bound", latestBlock)
+	s.logg.Info("bootstrapping historical syncer", "missing_blocks", missingBlocksCount, "lower_bound", lower, "upper_bound", upper)
 
 	buffer := make([]uint, missingBlocksCount)
 	missingBlocks.NextSetMany(0, buffer)
@@ -48,12 +38,12 @@ func (s *Syncer) BootstrapHistoricalSyncer() error {
 	return nil
 }
 
-func (s *Syncer) StartHistoricalSyncer(ctx context.Context) error {
+func (s *Syncer) StartHistoricalSyncer() error {
 	s.logg.Info("starting historical syncer", "batch_size", blockBatchSize)
 	for {
 		select {
-		case <-ctx.Done():
-			s.logg.Info("historical syncer shutting down")
+		case <-s.quit:
+			s.logg.Info("historical syncer stopped")
 			return nil
 		default:
 			if s.batchQueue.Len() > 0 {
@@ -78,7 +68,15 @@ func (s *Syncer) StartHistoricalSyncer(ctx context.Context) error {
 				for _, v := range blocks {
 					s.blocksQueue.PushBack(v)
 				}
+			} else {
+				time.Sleep(emptyQueueIdelTime)
+				s.logg.Debug("historical batcher queue empty slept for 2 seconds")
 			}
 		}
 	}
+}
+
+func (s *Syncer) StopHistoricalSyncer() {
+	s.logg.Info("signaling historical syncer shutdown")
+	s.quit <- struct{}{}
 }

@@ -16,7 +16,7 @@ type (
 )
 
 const (
-	resubscribeInterval = 15 * time.Second
+	resubscribeInterval = 5 * time.Second
 )
 
 func (s *Syncer) StartRealtime() {
@@ -55,7 +55,6 @@ func (s *Syncer) receiveRealtimeBlocks(ctx context.Context, fn BlockQueueFn) (ce
 		for {
 			select {
 			case header := <-newHeadersReceiver:
-				s.logg.Debug("received block", "block", header.Number.Uint64())
 				if err := fn(eventsCtx, header.Number.Uint64()); err != nil {
 					if !errors.Is(err, context.Canceled) {
 						s.logg.Error("realtime block queuer error", "error", err)
@@ -79,7 +78,6 @@ func (s *Syncer) queueRealtimeBlock(ctx context.Context, blockNumber uint64) err
 		}
 	}
 	s.blocksQueue.PushFront(block)
-	s.logg.Debug("queued block", "block", blockNumber)
 	return nil
 }
 

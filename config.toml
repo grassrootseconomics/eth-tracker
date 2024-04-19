@@ -6,14 +6,17 @@ address = ":5001"
 
 [chain]
 ws_endpoint = "wss://ws.celo.grassecon.net"
-rpc_endpoint = "https://rpc.ankr.com/celo/bae2b7745f52c50974d7ecb1a7c23dc05d9ab5b68caf498a7c73f09a3e8bc04a"
+rpc_endpoint = "https://1rpc.io/celo"
 testnet = false
+realtime = true
+historical = false
+start_block = 24905000
 
 [bootstrap]
-start_block = 24905000
 # https://software.grassecon.org/addresses
-registries = [
+ge_registries = [
     "0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C",
     "0x0cc9f4fff962def35bb34a53691180b13e653030",
 ]
+watchlist = [""]
 blacklist = [""]

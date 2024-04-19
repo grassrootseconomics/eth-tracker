@@ -94,13 +94,14 @@ func main() {
 
 	chainSyncer, err := syncer.New(syncer.SyncerOpts{
 		WebSocketEndpoint: ko.MustString("chain.ws_endpoint"),
+		EnableHistorical:  ko.Bool("chain.historical"),
+		StartBlock:        uint64(ko.MustInt64("bootstrap.start_block")),
 		BatchQueue:        &batchQueue,
 		BlocksQueue:       &blocksQueue,
 		Chain:             chain,
 		Logg:              lo,
 		Stats:             stats,
 		DB:                db,
-		InitialLowerBound: uint64(ko.MustInt64("bootstrap.start_block")),
 	})
 	if err != nil {
 		lo.Error("could not initialize chain syncer", "error", err)
@@ -114,7 +115,9 @@ func main() {
 	cache, err := cache.New(cache.CacheOpts{
 		Logg:       lo,
 		Chain:      chain,
-		Registries: ko.MustStrings("bootstrap.registries"),
+		Registries: ko.MustStrings("bootstrap.ge_registries"),
+		Blacklist:  ko.MustStrings("bootstrap.blacklist"),
+		Watchlist:  ko.MustStrings("bootstrap.watchlist"),
 	})
 	if err != nil {
 		lo.Error("could not initialize cache", "error", err)
