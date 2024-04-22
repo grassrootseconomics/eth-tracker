@@ -16,7 +16,7 @@ type (
 )
 
 const (
-	resubscribeInterval = 5 * time.Second
+	resubscribeInterval = 2 * time.Second
 )
 
 func (s *Syncer) StartRealtime() {

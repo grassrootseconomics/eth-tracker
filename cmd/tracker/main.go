@@ -23,7 +23,7 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-const defaultGracefulShutdownPeriod = time.Second * 15
+const defaultGracefulShutdownPeriod = time.Second * 20
 
 var (
 	build = "dev"
@@ -95,7 +95,7 @@ func main() {
 	chainSyncer, err := syncer.New(syncer.SyncerOpts{
 		WebSocketEndpoint: ko.MustString("chain.ws_endpoint"),
 		EnableHistorical:  ko.Bool("chain.historical"),
-		StartBlock:        uint64(ko.MustInt64("bootstrap.start_block")),
+		StartBlock:        uint64(ko.MustInt64("chain.start_block")),
 		BatchQueue:        &batchQueue,
 		BlocksQueue:       &blocksQueue,
 		Chain:             chain,
@@ -107,10 +107,6 @@ func main() {
 		lo.Error("could not initialize chain syncer", "error", err)
 		os.Exit(1)
 	}
-	// if err := chainSyncer.BootstrapHistoricalSyncer(); err != nil {
-	// 	lo.Error("could not bootstrap historical syncer", "error", err)
-	// 	os.Exit(1)
-	// }
 
 	cache, err := cache.New(cache.CacheOpts{
 		Logg:       lo,
@@ -138,11 +134,18 @@ func main() {
 		Emitter:     defaultEmitter,
 	})
 
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	chainSyncer.StartHistoricalSyncer(ctx)
-	// }()
+	if ko.Bool("chain.historical") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := chainSyncer.BootstrapHistoricalSyncer(); err != nil {
+				lo.Error("could not bootstrap historical syncer", "error", err)
+				os.Exit(1)
+			}
+
+			chainSyncer.StartHistoricalSyncer()
+		}()
+	}
 
 	wg.Add(1)
 	go func() {
@@ -163,13 +166,9 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		chainSyncer.StopRealtime()
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
 		blockProcessor.Stop()
+		chainSyncer.StopHistoricalSyncer()
+		chainSyncer.StopRealtime()
 	}()
 
 	go func() {

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	blockBatchSize     = 100
+	blockBatchSize     = 10
 	emptyQueueIdelTime = 2 * time.Second
 )
 

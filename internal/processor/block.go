@@ -22,6 +22,10 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 		return err
 	}
 
+	if len(receiptsResp) != len(txs) {
+		return fmt.Errorf("block txs receipts len mismatch %d", blockNumber)
+	}
+
 	for i, receipt := range receiptsResp {
 		if receipt.Status > 0 {
 			for _, log := range receipt.Logs {
@@ -37,7 +41,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 				}
 			}
 		} else {
-			if p.cache.Exists(txs[i].To().Hex()) {
+			if txs[i].To() != nil && p.cache.Exists(txs[i].To().Hex()) {
 				from, err := types.Sender(types.LatestSignerForChainID(txs[i].ChainId()), &txs[i])
 				if err != nil {
 					p.logg.Error("handler error", "handler_type", "revert", "error", err)
