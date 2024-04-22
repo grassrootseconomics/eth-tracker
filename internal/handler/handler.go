@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 )
 
@@ -40,10 +41,22 @@ type (
 	}
 )
 
-func New() []Handler {
+func New(cache cache.Cache) []Handler {
 	return []Handler{
 		&TokenTransferHandler{},
+		&PoolSwapHandler{},
+		&FaucetGiveHandler{},
+		&PoolDepositHandler{},
 		&TokenMintHandler{},
 		&TokenBurnHandler{},
+		&QuoterPriceHandler{},
+		&OwnershipHandler{},
+		&SealHandler{},
+		&IndexAddHandler{
+			cache: cache,
+		},
+		&IndexRemoveHandler{
+			cache: cache,
+		},
 	}
 }

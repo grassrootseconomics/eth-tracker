@@ -17,12 +17,20 @@ type (
 	}
 )
 
+const (
+	indexAddEventName = "INDEX_ADD"
+)
+
 var (
 	indexAddTopicHash = w3.H("0xa226db3f664042183ee0281230bba26cbf7b5057e50aee7f25a175ff45ce4d7f")
 	indexAddEvent     = w3.MustNewEvent("AddressAdded(address _token)")
 	indexAddSig       = w3.MustNewFunc("add(address)", "bool")
 	indexRegisterSig  = w3.MustNewFunc("register(address)", "bool")
 )
+
+func (h *IndexAddHandler) Name() string {
+	return indexAddEventName
+}
 
 func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == indexAddTopicHash {
@@ -40,7 +48,7 @@ func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, emitter
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "INDEX_ADD",
+			TxType:          indexAddEventName,
 			Payload: map[string]any{
 				"address": address.Hex(),
 			},
@@ -77,7 +85,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "INDEX_ADD",
+			TxType:          indexAddEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"address":      address.Hex(),
@@ -100,7 +108,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "INDEX_ADD",
+			TxType:          indexAddEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"address":      address.Hex(),

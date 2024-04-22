@@ -16,12 +16,20 @@ type (
 	}
 )
 
+const (
+	faucetGiveEventName = "FAUCET_GIVE"
+)
+
 var (
 	faucetGiveTopicHash = w3.H("0x26162814817e23ec5035d6a2edc6c422da2da2119e27cfca6be65cc2dc55ca4c")
 	faucetGiveEvent     = w3.MustNewEvent("Give(address indexed _recipient, address indexed _token, uint256 _amount)")
 	faucetGiveToSig     = w3.MustNewFunc("giveTo(address)", "uint256")
 	faucetGimmeSig      = w3.MustNewFunc("gimme()", "uint256")
 )
+
+func (h *FaucetGiveHandler) Name() string {
+	return faucetGiveEventName
+}
 
 func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == faucetGiveTopicHash {
@@ -41,7 +49,7 @@ func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, emitt
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "FAUCET_GIVE",
+			TxType:          faucetGiveEventName,
 			Payload: map[string]any{
 				"recipient": recipient.Hex(),
 				"token":     token.Hex(),
@@ -76,7 +84,7 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "FAUCET_GIVE",
+			TxType:          faucetGiveEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"recipient":    to.Hex(),
@@ -93,7 +101,7 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "FAUCET_GIVE",
+			TxType:          faucetGiveEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"recipient":    common.ZeroAddress.Hex(),

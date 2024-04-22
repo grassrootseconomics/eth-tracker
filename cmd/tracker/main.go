@@ -96,6 +96,7 @@ func main() {
 		WebSocketEndpoint: ko.MustString("chain.ws_endpoint"),
 		EnableHistorical:  ko.Bool("chain.historical"),
 		StartBlock:        uint64(ko.MustInt64("chain.start_block")),
+		BatchSize:         ko.MustInt("chain.batch_size"),
 		BatchQueue:        &batchQueue,
 		BlocksQueue:       &blocksQueue,
 		Chain:             chain,

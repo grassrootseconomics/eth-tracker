@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	quoterPriceEventName = "QUOTER_PRICE_INDEX_UPDATED"
+)
+
 var (
 	quoterPriceTopicHash = w3.H("0xdb9ce1a76955721ca61ac50cd1b87f9ab8620325c8619a62192c2dc7871d56b1")
 	quoterPriceEvent     = w3.MustNewEvent("PriceIndexUpdated(address _tokenAddress, uint256 _exchangeRate)")
 	quoterPriceToSig     = w3.MustNewFunc("setPriceIndexValue(address, uint256)", "uint256")
 )
+
+func (h *QuoterPriceHandler) Name() string {
+	return quoterPriceEventName
+}
 
 func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == quoterPriceTopicHash {
@@ -39,7 +47,7 @@ func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "QUOTER_PRICE_INDEX_UPDATED",
+			TxType:          quoterPriceEventName,
 			Payload: map[string]any{
 				"token":        token.Hex(),
 				"exchangeRate": exchangeRate.String(),
@@ -74,7 +82,7 @@ func (h *QuoterPriceHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "QUOTER_PRICE_INDEX_UPDATED",
+			TxType:          quoterPriceEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"token":        token.Hex(),

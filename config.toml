@@ -10,7 +10,8 @@ rpc_endpoint = "https://celo.grassecon.net"
 testnet = false
 realtime = true
 historical = true
-start_block = 25217425
+start_block = 25151040
+batch_size = 100
 
 [bootstrap]
 # https://software.grassecon.org/addresses

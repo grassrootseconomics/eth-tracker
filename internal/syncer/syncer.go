@@ -20,6 +20,7 @@ type (
 		StartBlock        uint64
 		BatchQueue        *deque.Deque[uint64]
 		BlocksQueue       *deque.Deque[types.Block]
+		BatchSize         int
 		Chain             *chain.Chain
 		Logg              *slog.Logger
 		Stats             *stats.Stats
@@ -33,6 +34,7 @@ type (
 		logg        *slog.Logger
 		stats       *stats.Stats
 		ethClient   *ethclient.Client
+		batchSize   int
 		db          *db.DB
 		quit        chan struct{}
 		startBlock  uint64
@@ -73,6 +75,7 @@ func New(o SyncerOpts) (*Syncer, error) {
 		stats:       o.Stats,
 		ethClient:   ethClient,
 		db:          o.DB,
+		batchSize:   o.BatchSize,
 		quit:        make(chan struct{}),
 		startBlock:  o.StartBlock,
 	}, nil

@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	sealEventName = "SEAL_STATE_CHANGE"
+)
+
 var (
 	sealTopicHash = w3.H("0x6b7e2e653f93b645d4ed7292d6429f96637084363e477c8aaea1a43ed13c284e")
 	sealEvent     = w3.MustNewEvent("SealStateChange(bool indexed _final, uint256 _sealState)")
 	sealToSig     = w3.MustNewFunc("seal(uint256)", "uint256")
 )
+
+func (h *SealHandler) Name() string {
+	return sealEventName
+}
 
 func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == sealTopicHash {
@@ -39,7 +47,7 @@ func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emi
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "SEAL_STATE_CHANGE",
+			TxType:          sealEventName,
 			Payload: map[string]any{
 				"final":     final,
 				"sealState": sealState.String(),
@@ -73,7 +81,7 @@ func (h *SealHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitt
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "SEAL_STATE_CHANGE",
+			TxType:          sealEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"sealState":    sealState.String(),

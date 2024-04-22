@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	poolDepositEventName = "POOL_DEPOSIT"
+)
+
 var (
 	poolDepositTopicHash = w3.H("0x5548c837ab068cf56a2c2479df0882a4922fd203edb7517321831d95078c5f62")
 	poolDepositEvent     = w3.MustNewEvent("Deposit(address indexed initiator, address indexed tokenIn, uint256 amountIn)")
 	poolDepositSig       = w3.MustNewFunc("deposit(address, uint256)", "")
 )
+
+func (h *PoolDepositHandler) Name() string {
+	return poolDepositEventName
+}
 
 func (h *PoolDepositHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == poolDepositTopicHash {
@@ -45,7 +53,7 @@ func (h *PoolDepositHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "POOL_DEPOSIT",
+			TxType:          poolDepositEventName,
 			Payload: map[string]any{
 				"initiator": initiator.Hex(),
 				"tokenIn":   tokenIn.Hex(),
@@ -81,7 +89,7 @@ func (h *PoolDepositHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "POOL_DEPOSIT",
+			TxType:          poolDepositEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"initiator":    msg.From,

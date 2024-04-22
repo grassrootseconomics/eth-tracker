@@ -55,7 +55,7 @@ func NewProcessor(o ProcessorOpts) *Processor {
 		stats:       o.Stats,
 		db:          o.DB,
 		quit:        make(chan struct{}),
-		handlers:    handler.New(),
+		handlers:    handler.New(o.Cache),
 		cache:       o.Cache,
 		emitter:     o.Emitter,
 	}

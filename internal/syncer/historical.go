@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	blockBatchSize     = 10
-	emptyQueueIdelTime = 2 * time.Second
+	emptyQueueIdelTime = 1 * time.Second
 )
 
 func (s *Syncer) BootstrapHistoricalSyncer() error {
@@ -39,7 +38,7 @@ func (s *Syncer) BootstrapHistoricalSyncer() error {
 }
 
 func (s *Syncer) StartHistoricalSyncer() error {
-	s.logg.Info("starting historical syncer", "batch_size", blockBatchSize)
+	s.logg.Info("starting historical syncer", "batch_size", s.batchSize)
 	for {
 		select {
 		case <-s.quit:
@@ -51,8 +50,8 @@ func (s *Syncer) StartHistoricalSyncer() error {
 					currentIterLen = s.batchQueue.Len()
 				)
 
-				if currentIterLen > blockBatchSize {
-					currentIterLen = blockBatchSize
+				if currentIterLen > s.batchSize {
+					currentIterLen = s.batchSize
 				}
 				batch := make([]uint64, currentIterLen)
 				for i := 0; i < currentIterLen; i++ {

@@ -15,11 +15,19 @@ type (
 	}
 )
 
+const (
+	ownershipEventName = "OWNERSHIP_TRANSFERRED"
+)
+
 var (
 	ownershipTopicHash = w3.H("0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0")
 	ownershipEvent     = w3.MustNewEvent("OwnershipTransferred(address indexed previousOwner, address indexed newOwner)")
 	ownershipToSig     = w3.MustNewFunc("transferOwnership(address)", "bool")
 )
+
+func (h *OwnershipHandler) Name() string {
+	return ownershipEventName
+}
 
 func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == ownershipTopicHash {
@@ -38,7 +46,7 @@ func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, emitte
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "OWNERSHIP_TRANSFERRED",
+			TxType:          ownershipEventName,
 			Payload: map[string]any{
 				"previousOwner": previousOwner.Hex(),
 				"newOwner":      newOwner.Hex(),
@@ -72,7 +80,7 @@ func (h *OwnershipHandler) HandleRevert(ctx context.Context, msg RevertMessage, 
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "ownership",
+			TxType:          ownershipEventName,
 			Payload: map[string]any{
 				"revertReason":  msg.RevertReason,
 				"previousOwner": msg.From,

@@ -17,11 +17,19 @@ type (
 	}
 )
 
+const (
+	indexRemoveEventName = "INDEX_REMOVE"
+)
+
 var (
 	indexRemoveTopicHash = w3.H("0x24a12366c02e13fe4a9e03d86a8952e85bb74a456c16e4a18b6d8295700b74bb")
 	indexRemoveEvent     = w3.MustNewEvent("AddressRemoved(address _token)")
 	indexRemoveSig       = w3.MustNewFunc("remove(address)", "bool")
 )
+
+func (h *IndexRemoveHandler) Name() string {
+	return indexRemoveEventName
+}
 
 func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == indexRemoveTopicHash {
@@ -39,7 +47,7 @@ func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "INDEX_REMOVE",
+			TxType:          indexRemoveEventName,
 			Payload: map[string]any{
 				"address": address.Hex(),
 			},
@@ -76,7 +84,7 @@ func (h *IndexRemoveHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "INDEX_REMOVE",
+			TxType:          indexRemoveEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"address":      address.Hex(),

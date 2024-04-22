@@ -16,11 +16,19 @@ type (
 	}
 )
 
+const (
+	poolSwapEventName = "POOL_SWAP"
+)
+
 var (
 	poolSwapTopicHash = w3.H("0xd6d34547c69c5ee3d2667625c188acf1006abb93e0ee7cf03925c67cf7760413")
 	poolSwapEvent     = w3.MustNewEvent("Swap(address indexed initiator, address indexed tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, uint256 fee)")
 	poolSwapSig       = w3.MustNewFunc("withdraw(address, address, uint256)", "")
 )
+
+func (h *PoolSwapHandler) Name() string {
+	return poolSwapEventName
+}
 
 func (h *PoolSwapHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
 	if msg.Log.Topics[0] == poolSwapTopicHash {
@@ -51,7 +59,7 @@ func (h *PoolSwapHandler) HandleLog(ctx context.Context, msg LogMessage, emitter
 			Success:         true,
 			Timestamp:       msg.BlockTime,
 			TxHash:          msg.Log.TxHash.Hex(),
-			TxType:          "POOL_SWAP",
+			TxType:          poolSwapEventName,
 			Payload: map[string]any{
 				"initiator": initiator.Hex(),
 				"tokenIn":   tokenIn.Hex(),
@@ -91,7 +99,7 @@ func (h *PoolSwapHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			Success:         false,
 			Timestamp:       msg.Timestamp,
 			TxHash:          msg.TxHash,
-			TxType:          "POOL_SWAP",
+			TxType:          poolSwapEventName,
 			Payload: map[string]any{
 				"revertReason": msg.RevertReason,
 				"initiator":    msg.From,
