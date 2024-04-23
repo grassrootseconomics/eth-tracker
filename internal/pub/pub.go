@@ -3,7 +3,7 @@ package pub
 import (
 	"context"
 
-	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/pkg/event"
 )
 
 type (

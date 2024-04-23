@@ -22,3 +22,15 @@ func (e Event) Serialize() ([]byte, error) {
 
 	return jsonData, err
 }
+
+func Deserialize(jsonData []byte) (Event, error) {
+	var (
+		event Event
+	)
+
+	if err := json.Unmarshal(jsonData, &event); err != nil {
+		return event, err
+	}
+
+	return event, nil
+}
