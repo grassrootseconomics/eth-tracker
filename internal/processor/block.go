@@ -22,10 +22,6 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 		return err
 	}
 
-	if len(receiptsResp) != len(txs) {
-		return fmt.Errorf("block txs receipts len mismatch %d", blockNumber)
-	}
-
 	for i, receipt := range receiptsResp {
 		if receipt.Status > 0 {
 			for _, log := range receipt.Logs {
@@ -36,7 +32,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 					}
 
 					if err := p.handleLogs(ctx, msg); err != nil {
-						p.logg.Error("handler error", "handler_type", "log", "handler_name", "error", err)
+						return err
 					}
 				}
 			}
@@ -44,12 +40,12 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 			if txs[i].To() != nil && p.cache.Exists(txs[i].To().Hex()) {
 				from, err := types.Sender(types.LatestSignerForChainID(txs[i].ChainId()), &txs[i])
 				if err != nil {
-					p.logg.Error("handler error", "handler_type", "revert", "error", err)
+					return err
 				}
 
 				revertReason, err := p.chain.GetRevertReason(ctx, receipt.TxHash, receipt.BlockNumber)
 				if err != nil {
-					p.logg.Error("handler error", "handler_type", "revert", "error", err)
+					return err
 				}
 
 				msg := handler.RevertMessage{
@@ -63,7 +59,7 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 				}
 
 				if err := p.handleRevert(ctx, msg); err != nil {
-					p.logg.Error("handler error", "handler_type", "revert", "error", err)
+					return err
 				}
 			}
 		}
@@ -79,8 +75,8 @@ func (p *Processor) processBlock(ctx context.Context, block types.Block) error {
 
 func (p *Processor) handleLogs(ctx context.Context, msg handler.LogMessage) error {
 	for _, handler := range p.handlers {
-		if err := handler.HandleLog(ctx, msg, p.emitter); err != nil {
-			return fmt.Errorf("handler: %s err: %v", handler.Name(), err)
+		if err := handler.HandleLog(ctx, msg, p.pub); err != nil {
+			return fmt.Errorf("log handler: %s err: %v", handler.Name(), err)
 		}
 	}
 
@@ -89,8 +85,8 @@ func (p *Processor) handleLogs(ctx context.Context, msg handler.LogMessage) erro
 
 func (p *Processor) handleRevert(ctx context.Context, msg handler.RevertMessage) error {
 	for _, handler := range p.handlers {
-		if err := handler.HandleRevert(ctx, msg, p.emitter); err != nil {
-			return fmt.Errorf("handler: %s err: %v", handler.Name(), err)
+		if err := handler.HandleRevert(ctx, msg, p.pub); err != nil {
+			return fmt.Errorf("revert handler: %s err: %v", handler.Name(), err)
 		}
 	}
 

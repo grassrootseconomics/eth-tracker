@@ -5,7 +5,8 @@ import (
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -31,7 +32,7 @@ func (h *TokenTransferHandler) Name() string {
 	return transferEventName
 }
 
-func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == tokenTransferTopicHash {
 		var (
 			from  common.Address
@@ -43,7 +44,7 @@ func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, em
 			return err
 		}
 
-		tokenTransferEvent := Event{
+		tokenTransferEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -57,13 +58,13 @@ func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, em
 			},
 		}
 
-		return emitter.Emit(ctx, tokenTransferEvent)
+		return pub.Send(ctx, tokenTransferEvent)
 	}
 
 	return nil
 }
 
-func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -79,7 +80,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			return err
 		}
 
-		tokenTransferEvent := Event{
+		tokenTransferEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -94,7 +95,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			},
 		}
 
-		return emitter.Emit(ctx, tokenTransferEvent)
+		return pub.Send(ctx, tokenTransferEvent)
 	case "23b872dd":
 		var (
 			from  common.Address
@@ -106,7 +107,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			return err
 		}
 
-		tokenTransferEvent := Event{
+		tokenTransferEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -121,7 +122,7 @@ func (h *TokenTransferHandler) HandleRevert(ctx context.Context, msg RevertMessa
 			},
 		}
 
-		return emitter.Emit(ctx, tokenTransferEvent)
+		return pub.Send(ctx, tokenTransferEvent)
 	}
 
 	return nil

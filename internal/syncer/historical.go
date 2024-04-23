@@ -76,6 +76,8 @@ func (s *Syncer) StartHistoricalSyncer() error {
 }
 
 func (s *Syncer) StopHistoricalSyncer() {
-	s.logg.Info("signaling historical syncer shutdown")
-	s.quit <- struct{}{}
+	if s.historicalEnabled {
+		s.logg.Info("signaling historical syncer shutdown")
+		s.quit <- struct{}{}
+	}
 }

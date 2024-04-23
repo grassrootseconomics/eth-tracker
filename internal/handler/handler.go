@@ -5,14 +5,14 @@ import (
 
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 )
 
 type (
 	Handler interface {
 		Name() string
-		HandleLog(context.Context, LogMessage, emitter.Emitter) error
-		HandleRevert(context.Context, RevertMessage, emitter.Emitter) error
+		HandleLog(context.Context, LogMessage, pub.Pub) error
+		HandleRevert(context.Context, RevertMessage, pub.Pub) error
 	}
 
 	LogMessage struct {
@@ -28,16 +28,6 @@ type (
 		ContractAddress string
 		Timestamp       uint64
 		TxHash          string
-	}
-
-	Event struct {
-		Block           uint64         `json:"block"`
-		ContractAddress string         `json:"contractAddress"`
-		Success         bool           `json:"success"`
-		Timestamp       uint64         `json:"timestamp"`
-		TxHash          string         `json:"transactionHash"`
-		TxType          string         `json:"transactionType"`
-		Payload         map[string]any `json:"payload"`
 	}
 )
 

@@ -5,7 +5,8 @@ import (
 
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -32,7 +33,7 @@ func (h *IndexAddHandler) Name() string {
 	return indexAddEventName
 }
 
-func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == indexAddTopicHash {
 		var (
 			address common.Address
@@ -42,7 +43,7 @@ func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, emitter
 			return err
 		}
 
-		indexAddEvent := Event{
+		indexAddEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -58,13 +59,13 @@ func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, emitter
 			h.cache.Add(address.Hex())
 		}
 
-		return emitter.Emit(ctx, indexAddEvent)
+		return pub.Send(ctx, indexAddEvent)
 	}
 
 	return nil
 }
 
-func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -79,7 +80,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			return err
 		}
 
-		indexAddEvent := Event{
+		indexAddEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -92,7 +93,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			},
 		}
 
-		return emitter.Emit(ctx, indexAddEvent)
+		return pub.Send(ctx, indexAddEvent)
 	case "4420e486":
 		var (
 			address common.Address
@@ -102,7 +103,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			return err
 		}
 
-		indexAddEvent := Event{
+		indexAddEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -115,7 +116,7 @@ func (h *IndexAddHandler) HandleRevert(ctx context.Context, msg RevertMessage, e
 			},
 		}
 
-		return emitter.Emit(ctx, indexAddEvent)
+		return pub.Send(ctx, indexAddEvent)
 	}
 
 	return nil

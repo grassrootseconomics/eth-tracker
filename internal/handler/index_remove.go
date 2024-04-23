@@ -5,7 +5,8 @@ import (
 
 	"github.com/celo-org/celo-blockchain/common"
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -31,7 +32,7 @@ func (h *IndexRemoveHandler) Name() string {
 	return indexRemoveEventName
 }
 
-func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == indexRemoveTopicHash {
 		var (
 			address common.Address
@@ -41,7 +42,7 @@ func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			return err
 		}
 
-		indexRemoveEvent := Event{
+		indexRemoveEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -57,13 +58,13 @@ func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			h.cache.Remove(address.Hex())
 		}
 
-		return emitter.Emit(ctx, indexRemoveEvent)
+		return pub.Send(ctx, indexRemoveEvent)
 	}
 
 	return nil
 }
 
-func (h *IndexRemoveHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *IndexRemoveHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -78,7 +79,7 @@ func (h *IndexRemoveHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			return err
 		}
 
-		indexRemoveEvent := Event{
+		indexRemoveEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -91,7 +92,7 @@ func (h *IndexRemoveHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			},
 		}
 
-		return emitter.Emit(ctx, indexRemoveEvent)
+		return pub.Send(ctx, indexRemoveEvent)
 	}
 
 	return nil

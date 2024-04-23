@@ -58,7 +58,7 @@ func New(o CacheOpts) (Cache, error) {
 		return nil, err
 	}
 	// We only watch the token and pool indexes
-	// If at some point we want to eatch the user index, this line should be removed
+	// If at some point we want to watch the user index, this line should be removed
 	cache.SetWatchableIndex(watchableIndex)
 
 	for _, address := range o.Watchlist {

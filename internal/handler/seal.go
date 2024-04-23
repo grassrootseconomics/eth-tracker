@@ -5,7 +5,8 @@ import (
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -30,7 +31,7 @@ func (h *SealHandler) Name() string {
 	return sealEventName
 }
 
-func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == sealTopicHash {
 		var (
 			final     bool
@@ -41,7 +42,7 @@ func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emi
 			return err
 		}
 
-		sealEvent := Event{
+		sealEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -54,13 +55,13 @@ func (h *SealHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emi
 			},
 		}
 
-		return emitter.Emit(ctx, sealEvent)
+		return pub.Send(ctx, sealEvent)
 	}
 
 	return nil
 }
 
-func (h *SealHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *SealHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -75,7 +76,7 @@ func (h *SealHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitt
 			return err
 		}
 
-		sealEvent := Event{
+		sealEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -88,7 +89,7 @@ func (h *SealHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitt
 			},
 		}
 
-		return emitter.Emit(ctx, sealEvent)
+		return pub.Send(ctx, sealEvent)
 	}
 
 	return nil

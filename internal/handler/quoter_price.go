@@ -5,7 +5,8 @@ import (
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -30,7 +31,7 @@ func (h *QuoterPriceHandler) Name() string {
 	return quoterPriceEventName
 }
 
-func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == quoterPriceTopicHash {
 		var (
 			token        common.Address
@@ -41,7 +42,7 @@ func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			return err
 		}
 
-		quoterPriceEvent := Event{
+		quoterPriceEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -54,13 +55,13 @@ func (h *QuoterPriceHandler) HandleLog(ctx context.Context, msg LogMessage, emit
 			},
 		}
 
-		return emitter.Emit(ctx, quoterPriceEvent)
+		return pub.Send(ctx, quoterPriceEvent)
 	}
 
 	return nil
 }
 
-func (h *QuoterPriceHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *QuoterPriceHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -76,7 +77,7 @@ func (h *QuoterPriceHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			return err
 		}
 
-		quoterPriceEvent := Event{
+		quoterPriceEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -90,7 +91,7 @@ func (h *QuoterPriceHandler) HandleRevert(ctx context.Context, msg RevertMessage
 			},
 		}
 
-		return emitter.Emit(ctx, quoterPriceEvent)
+		return pub.Send(ctx, quoterPriceEvent)
 	}
 
 	return nil

@@ -28,17 +28,18 @@ type (
 	}
 
 	Syncer struct {
-		batchQueue  *deque.Deque[uint64]
-		blocksQueue *deque.Deque[types.Block]
-		chain       *chain.Chain
-		logg        *slog.Logger
-		stats       *stats.Stats
-		ethClient   *ethclient.Client
-		batchSize   int
-		db          *db.DB
-		quit        chan struct{}
-		startBlock  uint64
-		realtimeSub celo.Subscription
+		batchQueue        *deque.Deque[uint64]
+		blocksQueue       *deque.Deque[types.Block]
+		chain             *chain.Chain
+		logg              *slog.Logger
+		stats             *stats.Stats
+		ethClient         *ethclient.Client
+		batchSize         int
+		db                *db.DB
+		quit              chan struct{}
+		startBlock        uint64
+		realtimeSub       celo.Subscription
+		historicalEnabled bool
 	}
 )
 
@@ -68,15 +69,16 @@ func New(o SyncerOpts) (*Syncer, error) {
 	}
 
 	return &Syncer{
-		batchQueue:  o.BatchQueue,
-		blocksQueue: o.BlocksQueue,
-		chain:       o.Chain,
-		logg:        o.Logg,
-		stats:       o.Stats,
-		ethClient:   ethClient,
-		db:          o.DB,
-		batchSize:   o.BatchSize,
-		quit:        make(chan struct{}),
-		startBlock:  o.StartBlock,
+		batchQueue:        o.BatchQueue,
+		blocksQueue:       o.BlocksQueue,
+		chain:             o.Chain,
+		logg:              o.Logg,
+		stats:             o.Stats,
+		ethClient:         ethClient,
+		db:                o.DB,
+		batchSize:         o.BatchSize,
+		quit:              make(chan struct{}),
+		startBlock:        o.StartBlock,
+		historicalEnabled: o.EnableHistorical,
 	}, nil
 }

@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -29,7 +30,7 @@ func (h *OwnershipHandler) Name() string {
 	return ownershipEventName
 }
 
-func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == ownershipTopicHash {
 		var (
 			previousOwner common.Address
@@ -40,7 +41,7 @@ func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, emitte
 			return err
 		}
 
-		ownershipEvent := Event{
+		ownershipEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -53,13 +54,13 @@ func (h *OwnershipHandler) HandleLog(ctx context.Context, msg LogMessage, emitte
 			},
 		}
 
-		return emitter.Emit(ctx, ownershipEvent)
+		return pub.Send(ctx, ownershipEvent)
 	}
 
 	return nil
 }
 
-func (h *OwnershipHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *OwnershipHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -74,7 +75,7 @@ func (h *OwnershipHandler) HandleRevert(ctx context.Context, msg RevertMessage, 
 			return err
 		}
 
-		ownershipEvent := Event{
+		ownershipEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -88,7 +89,7 @@ func (h *OwnershipHandler) HandleRevert(ctx context.Context, msg RevertMessage, 
 			},
 		}
 
-		return emitter.Emit(ctx, ownershipEvent)
+		return pub.Send(ctx, ownershipEvent)
 	}
 
 	return nil

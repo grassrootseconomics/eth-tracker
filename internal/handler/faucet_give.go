@@ -5,7 +5,8 @@ import (
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
+	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/w3-celo"
 )
 
@@ -31,7 +32,7 @@ func (h *FaucetGiveHandler) Name() string {
 	return faucetGiveEventName
 }
 
-func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, emitter emitter.Emitter) error {
+func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub.Pub) error {
 	if msg.Log.Topics[0] == faucetGiveTopicHash {
 		var (
 			recipient common.Address
@@ -43,7 +44,7 @@ func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, emitt
 			return err
 		}
 
-		faucetGiveEvent := Event{
+		faucetGiveEvent := event.Event{
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
@@ -57,13 +58,13 @@ func (h *FaucetGiveHandler) HandleLog(ctx context.Context, msg LogMessage, emitt
 			},
 		}
 
-		return emitter.Emit(ctx, faucetGiveEvent)
+		return pub.Send(ctx, faucetGiveEvent)
 	}
 
 	return nil
 }
 
-func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage, emitter emitter.Emitter) error {
+func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage, pub pub.Pub) error {
 	if len(msg.InputData) < 8 {
 		return nil
 	}
@@ -78,7 +79,7 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			return err
 		}
 
-		faucetGiveEvent := Event{
+		faucetGiveEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -93,9 +94,9 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			},
 		}
 
-		return emitter.Emit(ctx, faucetGiveEvent)
+		return pub.Send(ctx, faucetGiveEvent)
 	case "de82efb4":
-		faucetGiveEvent := Event{
+		faucetGiveEvent := event.Event{
 			Block:           msg.Block,
 			ContractAddress: msg.ContractAddress,
 			Success:         false,
@@ -110,7 +111,7 @@ func (h *FaucetGiveHandler) HandleRevert(ctx context.Context, msg RevertMessage,
 			},
 		}
 
-		return emitter.Emit(ctx, faucetGiveEvent)
+		return pub.Send(ctx, faucetGiveEvent)
 	}
 
 	return nil

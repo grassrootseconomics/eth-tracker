@@ -16,8 +16,8 @@ import (
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
-	"github.com/grassrootseconomics/celo-tracker/internal/emitter"
 	"github.com/grassrootseconomics/celo-tracker/internal/processor"
+	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 	"github.com/grassrootseconomics/celo-tracker/internal/syncer"
 	"github.com/knadh/koanf/v2"
@@ -121,9 +121,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	defaultEmitter := emitter.New(emitter.EmitterOpts{
-		Logg: lo,
+	jetStreamPub, err := pub.NewJetStreamPub(pub.JetStreamOpts{
+		Endpoint:        ko.MustString("jetstream.endpoint"),
+		PersistDuration: time.Duration(ko.MustInt("jetstream.persist_duration_hrs")) * time.Hour,
+		DedupDuration:   time.Duration(ko.MustInt("jetstream.dedup_duration_hrs")) * time.Hour,
+		Logg:            lo,
 	})
+	if err != nil {
+		lo.Error("could not initialize jetstream pub", "error", err)
+		os.Exit(1)
+	}
 
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
 		Chain:       chain,
@@ -132,7 +139,7 @@ func main() {
 		Stats:       stats,
 		DB:          db,
 		Cache:       cache,
-		Emitter:     defaultEmitter,
+		Pub:         jetStreamPub,
 	})
 
 	if ko.Bool("chain.historical") {
@@ -168,6 +175,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		blockProcessor.Stop()
+		jetStreamPub.Close()
 		chainSyncer.StopHistoricalSyncer()
 		chainSyncer.StopRealtime()
 	}()
