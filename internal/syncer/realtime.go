@@ -19,23 +19,23 @@ const (
 	resubscribeInterval = 2 * time.Second
 )
 
-func (s *Syncer) StartRealtime() {
+func (s *Syncer) Start() {
 	s.realtimeSub = event.ResubscribeErr(resubscribeInterval, s.resubscribeFn())
 }
 
-func (s *Syncer) StopRealtime() {
+func (s *Syncer) Stop() {
 	if s.realtimeSub != nil {
 		s.realtimeSub.Unsubscribe()
 	}
 }
 
 func (s *Syncer) receiveRealtimeBlocks(ctx context.Context, fn BlockQueueFn) (celo.Subscription, error) {
-	newHeadersReceiver := make(chan *types.Header, 10)
+	newHeadersReceiver := make(chan *types.Header, 1)
 	sub, err := s.ethClient.SubscribeNewHead(ctx, newHeadersReceiver)
-	s.logg.Info("realtime syncer connected to ws endpoint")
 	if err != nil {
 		return nil, err
 	}
+	s.logg.Info("realtime syncer connected to ws endpoint")
 
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		eventsCtx, eventsCancel := context.WithCancel(context.Background())
@@ -77,7 +77,13 @@ func (s *Syncer) queueRealtimeBlock(ctx context.Context, blockNumber uint64) err
 			return fmt.Errorf("block %d error: %v", blockNumber, err)
 		}
 	}
-	s.blocksQueue.PushFront(block)
+
+	s.blockWorker.Submit(func() {
+		if err := s.blockProcessor.ProcessBlock(context.Background(), block); err != nil {
+			s.logg.Error("block processor error", "source", "realtime", "block", blockNumber, "error", err)
+		}
+	})
+
 	return nil
 }
 

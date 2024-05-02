@@ -5,62 +5,51 @@ import (
 	"log/slog"
 
 	"github.com/celo-org/celo-blockchain"
-	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/celo-org/celo-blockchain/ethclient"
-	"github.com/ef-ds/deque/v2"
-	"github.com/grassrootseconomics/celo-tracker/internal/chain"
+	"github.com/gammazero/workerpool"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
+	"github.com/grassrootseconomics/celo-tracker/internal/processor"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
+	"github.com/grassrootseconomics/celo-tracker/pkg/chain"
 )
 
 type (
 	SyncerOpts struct {
-		WebSocketEndpoint string
-		EnableHistorical  bool
-		StartBlock        uint64
-		BatchQueue        *deque.Deque[uint64]
-		BlocksQueue       *deque.Deque[types.Block]
-		BatchSize         int
+		BlockWorker       *workerpool.WorkerPool
+		BlockProcessor    *processor.Processor
 		Chain             *chain.Chain
+		DB                *db.DB
 		Logg              *slog.Logger
 		Stats             *stats.Stats
-		DB                *db.DB
+		WebSocketEndpoint string
 	}
 
 	Syncer struct {
-		batchQueue        *deque.Deque[uint64]
-		blocksQueue       *deque.Deque[types.Block]
-		chain             *chain.Chain
-		logg              *slog.Logger
-		stats             *stats.Stats
-		ethClient         *ethclient.Client
-		batchSize         int
-		db                *db.DB
-		quit              chan struct{}
-		startBlock        uint64
-		realtimeSub       celo.Subscription
-		historicalEnabled bool
+		blockWorker    *workerpool.WorkerPool
+		blockProcessor *processor.Processor
+		chain          *chain.Chain
+		db             *db.DB
+		ethClient      *ethclient.Client
+		logg           *slog.Logger
+		quit           chan struct{}
+		realtimeSub    celo.Subscription
+		stats          *stats.Stats
 	}
 )
 
 func New(o SyncerOpts) (*Syncer, error) {
-	if o.EnableHistorical {
-		latestBlock, err := o.Chain.GetLatestBlock(context.Background())
-		if err != nil {
+	latestBlock, err := o.Chain.GetLatestBlock(context.Background())
+	lowerBound, err := o.DB.GetLowerBound()
+	if err != nil {
+		return nil, err
+	}
+	if lowerBound == 0 {
+		if err := o.DB.SetLowerBound(latestBlock); err != nil {
 			return nil, err
 		}
-
-		if o.StartBlock == 0 {
-			o.StartBlock = latestBlock
-		}
-
-		if err := o.DB.SetLowerBound(o.StartBlock); err != nil {
-			return nil, err
-		}
-
-		if err := o.DB.SetUpperBound(latestBlock); err != nil {
-			return nil, err
-		}
+	}
+	if err := o.DB.SetUpperBound(latestBlock); err != nil {
+		return nil, err
 	}
 
 	ethClient, err := ethclient.Dial(o.WebSocketEndpoint)
@@ -69,16 +58,12 @@ func New(o SyncerOpts) (*Syncer, error) {
 	}
 
 	return &Syncer{
-		batchQueue:        o.BatchQueue,
-		blocksQueue:       o.BlocksQueue,
-		chain:             o.Chain,
-		logg:              o.Logg,
-		stats:             o.Stats,
-		ethClient:         ethClient,
-		db:                o.DB,
-		batchSize:         o.BatchSize,
-		quit:              make(chan struct{}),
-		startBlock:        o.StartBlock,
-		historicalEnabled: o.EnableHistorical,
+		blockWorker: o.BlockWorker,
+		chain:       o.Chain,
+		db:          o.DB,
+		ethClient:   ethClient,
+		logg:        o.Logg,
+		quit:        make(chan struct{}),
+		stats:       o.Stats,
 	}, nil
 }

@@ -14,12 +14,12 @@ import (
 	"github.com/celo-org/celo-blockchain/core/types"
 	"github.com/ef-ds/deque/v2"
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
-	"github.com/grassrootseconomics/celo-tracker/internal/chain"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
 	"github.com/grassrootseconomics/celo-tracker/internal/processor"
 	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 	"github.com/grassrootseconomics/celo-tracker/internal/syncer"
+	"github.com/grassrootseconomics/celo-tracker/pkg/chain"
 	"github.com/knadh/koanf/v2"
 )
 

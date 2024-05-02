@@ -19,7 +19,7 @@ type (
 		PersistDuration time.Duration
 	}
 
-	JetStreamEmitter struct {
+	JetStreamPub struct {
 		natsConn *nats.Conn
 		jsCtx    nats.JetStreamContext
 	}
@@ -60,19 +60,19 @@ func NewJetStreamPub(o JetStreamOpts) (Pub, error) {
 		o.Logg.Info("successfully created NATS JetStream stream", "stream_name", streamName)
 	}
 
-	return &JetStreamEmitter{
+	return &JetStreamPub{
 		natsConn: natsConn,
 		jsCtx:    js,
 	}, nil
 }
 
-func (p *JetStreamEmitter) Close() {
+func (p *JetStreamPub) Close() {
 	if p.natsConn != nil {
 		p.natsConn.Close()
 	}
 }
 
-func (p *JetStreamEmitter) Send(_ context.Context, payload event.Event) error {
+func (p *JetStreamPub) Send(_ context.Context, payload event.Event) error {
 	data, err := payload.Serialize()
 	if err != nil {
 		return err

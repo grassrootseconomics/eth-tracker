@@ -15,9 +15,11 @@ type (
 		HandleRevert(context.Context, RevertMessage, pub.Pub) error
 	}
 
+	HandlerPipeline []Handler
+
 	LogMessage struct {
 		Log       *types.Log
-		BlockTime uint64
+		Timestamp uint64
 	}
 
 	RevertMessage struct {
@@ -31,7 +33,7 @@ type (
 	}
 )
 
-func New(cache cache.Cache) []Handler {
+func New(cache cache.Cache) HandlerPipeline {
 	return []Handler{
 		&TokenTransferHandler{},
 		&PoolSwapHandler{},

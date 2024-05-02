@@ -46,7 +46,7 @@ func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, pub 
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
-			Timestamp:       msg.BlockTime,
+			Timestamp:       msg.Timestamp,
 			TxHash:          msg.Log.TxHash.Hex(),
 			TxType:          indexRemoveEventName,
 			Payload: map[string]any{

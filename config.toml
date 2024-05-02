@@ -9,9 +9,9 @@ ws_endpoint = "wss://ws.celo.grassecon.net"
 rpc_endpoint = "https://celo.grassecon.net"
 testnet = false
 realtime = true
-historical = false
-start_block = 25151040
-batch_size = 100
+historical = true
+start_block = 25091040
+batch_size = 30
 
 [bootstrap]
 # https://software.grassecon.org/addresses
@@ -20,7 +20,7 @@ ge_registries = [
     "0x0cc9f4fff962def35bb34a53691180b13e653030",
 ]
 watchlist = [""]
-blacklist = [""]
+blacklist = ["0x765DE816845861e75A25fCA122bb6898B8B1282a"]
 
 [jetstream]
 enable = true

@@ -48,7 +48,7 @@ func (h *TokenTransferHandler) HandleLog(ctx context.Context, msg LogMessage, pu
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
-			Timestamp:       msg.BlockTime,
+			Timestamp:       msg.Timestamp,
 			TxHash:          msg.Log.TxHash.Hex(),
 			TxType:          transferEventName,
 			Payload: map[string]any{

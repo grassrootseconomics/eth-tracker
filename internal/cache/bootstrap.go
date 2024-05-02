@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/chain"
+	"github.com/grassrootseconomics/celo-tracker/pkg/chain"
 	"github.com/grassrootseconomics/celoutils/v2"
 	"github.com/grassrootseconomics/w3-celo"
 	"github.com/grassrootseconomics/w3-celo/module/eth"

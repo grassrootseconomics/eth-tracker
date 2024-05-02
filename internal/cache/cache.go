@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/grassrootseconomics/celo-tracker/internal/chain"
+	"github.com/grassrootseconomics/celo-tracker/pkg/chain"
 	"github.com/grassrootseconomics/w3-celo"
 )
 

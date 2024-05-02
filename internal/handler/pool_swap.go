@@ -58,7 +58,7 @@ func (h *PoolSwapHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub
 			Block:           msg.Log.BlockNumber,
 			ContractAddress: msg.Log.Address.Hex(),
 			Success:         true,
-			Timestamp:       msg.BlockTime,
+			Timestamp:       msg.Timestamp,
 			TxHash:          msg.Log.TxHash.Hex(),
 			TxType:          poolSwapEventName,
 			Payload: map[string]any{
