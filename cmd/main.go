@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grassrootseconomics/celo-tracker/internal/backfiller"
 	"github.com/grassrootseconomics/celo-tracker/internal/cache"
 	"github.com/grassrootseconomics/celo-tracker/internal/db"
 	"github.com/grassrootseconomics/celo-tracker/internal/pool"
@@ -19,7 +20,6 @@ import (
 	"github.com/grassrootseconomics/celo-tracker/internal/pub"
 	"github.com/grassrootseconomics/celo-tracker/internal/stats"
 	"github.com/grassrootseconomics/celo-tracker/internal/syncer"
-	"github.com/grassrootseconomics/celo-tracker/internal/verifier"
 	"github.com/grassrootseconomics/celo-tracker/pkg/chain"
 	"github.com/knadh/koanf/v2"
 )
@@ -45,24 +45,24 @@ func init() {
 	lo.Info("starting celo tracker", "build", build)
 }
 
+/*
+Dependency Order
+----------------
+- Stats
+- Chain
+- DB
+- Cache
+- JetStream Pub
+- Worker Pool
+- Block Processor
+- Chain Syncer
+- Verifier
+*/
 func main() {
 	var wg sync.WaitGroup
+
 	ctx, stop := notifyShutdown()
 
-	/*
-		Dependency Order
-		----------------
-		- Stats
-		- Chain
-		- DB
-		- Cache
-		- JetStream Pub
-		- Worker Pool
-		- Block Processor
-		- Chain Syncer
-		- Verifier
-
-	*/
 	stats := stats.New(lo)
 
 	chain, err := chain.New(chain.ChainOpts{
@@ -107,7 +107,7 @@ func main() {
 	}
 
 	workerPool := pool.NewPool(pool.PoolOpts{
-		PoolSize: runtime.NumCPU(),
+		PoolSize: runtime.NumCPU()*3 + 1,
 	})
 
 	blockProcessor := processor.NewProcessor(processor.ProcessorOpts{
@@ -125,6 +125,7 @@ func main() {
 		Chain:             chain,
 		DB:                db,
 		Logg:              lo,
+		StartBlock:        ko.Int64("chain.start_block"),
 		Stats:             stats,
 		WebSocketEndpoint: ko.MustString("chain.ws_endpoint"),
 	})
@@ -133,7 +134,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	verifier := verifier.New(verifier.VerifierOpts{
+	backfiller := backfiller.New(backfiller.BackfillerOpts{
 		BlockWorker:    workerPool,
 		BlockProcessor: blockProcessor,
 		Chain:          chain,
@@ -151,7 +152,11 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		verifier.Start()
+		if err := backfiller.Run(false); err != nil {
+			lo.Error("backfiller initial run error", "error", err)
+		}
+
+		backfiller.Start()
 	}()
 
 	<-ctx.Done()
@@ -161,10 +166,14 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		workerPool.StopWait()
 		chainSyncer.Stop()
-		verifier.Stop()
+		backfiller.Stop()
+		workerPool.Stop()
 		jetStreamPub.Close()
+
+		if err := db.Cleanup(); err != nil {
+			lo.Error("db compaction failed", "error", err)
+		}
 	}()
 
 	go func() {

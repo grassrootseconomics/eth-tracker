@@ -5,16 +5,13 @@ go_process = true
 address = ":5001"
 
 [chain]
-ws_endpoint = "wss://ws.celo.grassecon.net"
-rpc_endpoint = "https://celo.grassecon.net"
+ws_endpoint = "wss://forno.celo.org/ws"
+rpc_endpoint = "https://forno.celo.org"
 testnet = false
-realtime = true
-historical = true
-start_block = 25091040
-batch_size = 30
+start_block = 25462593
+
 
 [bootstrap]
-# https://software.grassecon.org/addresses
 ge_registries = [
     "0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C",
     "0x0cc9f4fff962def35bb34a53691180b13e653030",

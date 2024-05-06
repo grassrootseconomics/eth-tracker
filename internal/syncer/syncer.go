@@ -20,6 +20,7 @@ type (
 		Chain             *chain.Chain
 		DB                *db.DB
 		Logg              *slog.Logger
+		StartBlock        int64
 		Stats             *stats.Stats
 		WebSocketEndpoint string
 	}
@@ -39,15 +40,26 @@ type (
 
 func New(o SyncerOpts) (*Syncer, error) {
 	latestBlock, err := o.Chain.GetLatestBlock(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	lowerBound, err := o.DB.GetLowerBound()
 	if err != nil {
 		return nil, err
 	}
 	if lowerBound == 0 {
-		if err := o.DB.SetLowerBound(latestBlock); err != nil {
-			return nil, err
+		if o.StartBlock > 0 {
+			if err := o.DB.SetLowerBound(uint64(o.StartBlock)); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := o.DB.SetLowerBound(latestBlock); err != nil {
+				return nil, err
+			}
 		}
 	}
+
 	if err := o.DB.SetUpperBound(latestBlock); err != nil {
 		return nil, err
 	}
@@ -58,12 +70,13 @@ func New(o SyncerOpts) (*Syncer, error) {
 	}
 
 	return &Syncer{
-		blockWorker: o.BlockWorker,
-		chain:       o.Chain,
-		db:          o.DB,
-		ethClient:   ethClient,
-		logg:        o.Logg,
-		quit:        make(chan struct{}),
-		stats:       o.Stats,
+		blockWorker:    o.BlockWorker,
+		blockProcessor: o.BlockProcessor,
+		chain:          o.Chain,
+		db:             o.DB,
+		ethClient:      ethClient,
+		logg:           o.Logg,
+		quit:           make(chan struct{}),
+		stats:          o.Stats,
 	}, nil
 }

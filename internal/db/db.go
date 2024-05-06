@@ -112,6 +112,11 @@ func (d *DB) GetLowerBound() (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	if v == nil {
+		return 0, nil
+	}
+
 	return unmarshalUint64(v), nil
 }
 

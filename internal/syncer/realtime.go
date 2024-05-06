@@ -84,6 +84,10 @@ func (s *Syncer) queueRealtimeBlock(ctx context.Context, blockNumber uint64) err
 		}
 	})
 
+	if err := s.db.SetUpperBound(blockNumber); err != nil {
+		return err
+	}
+
 	return nil
 }
 

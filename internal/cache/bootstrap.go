@@ -11,9 +11,7 @@ import (
 )
 
 func bootstrapGESmartContracts(ctx context.Context, registries []string, chain *chain.Chain, cache Cache) (WatchableIndex, error) {
-	var (
-		watchableIndex = make(WatchableIndex)
-	)
+	var watchableIndex = make(WatchableIndex)
 
 	for _, registry := range registries {
 		registryMap, err := chain.Provider.RegistryMap(ctx, w3.A(registry))
@@ -76,5 +74,5 @@ func bootstrapGESmartContracts(ctx context.Context, registries []string, chain *
 		}
 	}
 
-	return watchableIndex, nil
+	return nil, nil
 }
