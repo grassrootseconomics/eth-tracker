@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/grassrootseconomics/celo-tracker/pkg/event"
 	"github.com/nats-io/nats.go"
+	"github.com/zeebo/xxh3"
 )
 
 type (
@@ -81,7 +83,7 @@ func (p *JetStreamPub) Send(_ context.Context, payload event.Event) error {
 	_, err = p.jsCtx.Publish(
 		fmt.Sprintf("%s.%s", streamName, payload.TxType),
 		data,
-		nats.MsgId(fmt.Sprintf("%s:%s", payload.TxType, payload.TxHash)),
+		nats.MsgId(strconv.FormatUint(xxh3.Hash(data), 10)),
 	)
 	if err != nil {
 		return err
