@@ -54,7 +54,7 @@ func (h *IndexRemoveHandler) HandleLog(ctx context.Context, msg LogMessage, pub 
 			},
 		}
 
-		if h.cache.IsWatchAbleIndex(address.Hex()) {
+		if h.cache.IsWatchableIndex(address.Hex()) {
 			h.cache.Remove(address.Hex())
 		}
 

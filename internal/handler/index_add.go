@@ -55,7 +55,7 @@ func (h *IndexAddHandler) HandleLog(ctx context.Context, msg LogMessage, pub pub
 			},
 		}
 
-		if h.cache.IsWatchAbleIndex(address.Hex()) {
+		if h.cache.IsWatchableIndex(address.Hex()) {
 			h.cache.Add(address.Hex())
 		}
 

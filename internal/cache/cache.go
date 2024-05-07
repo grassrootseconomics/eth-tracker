@@ -15,7 +15,7 @@ type (
 		Add(string)
 		Remove(string)
 		SetWatchableIndex(WatchableIndex)
-		IsWatchAbleIndex(string) bool
+		IsWatchableIndex(string) bool
 		Size() int
 	}
 

@@ -8,7 +8,7 @@ address = ":5001"
 ws_endpoint = "wss://forno.celo.org/ws"
 rpc_endpoint = "https://forno.celo.org"
 testnet = false
-start_block = 25462593
+start_block = 0
 
 
 [bootstrap]

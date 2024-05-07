@@ -46,7 +46,7 @@ func (c *MapCache) SetWatchableIndex(watchableIndex WatchableIndex) {
 	c.watchableIndex = watchableIndex
 }
 
-func (c *MapCache) IsWatchAbleIndex(key string) bool {
+func (c *MapCache) IsWatchableIndex(key string) bool {
 	_, ok := c.watchableIndex[key]
 	return ok
 }
