@@ -119,7 +119,7 @@ func (p *Processor) ProcessBlock(ctx context.Context, blockNumber uint64) error 
 }
 
 func (p *Processor) isTrieAvailable(blockNumber uint64) bool {
-	available := p.chain.IsArchiveNode() || p.stats.GetLatestBlock()-blockNumber <= 256
+	available := p.chain.IsArchiveNode() || p.stats.GetLatestBlock()-blockNumber <= 128
 	if !available {
 		p.logg.Warn("skipping block due to potentially missing trie", "block_number", blockNumber)
 	}
