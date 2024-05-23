@@ -1,0 +1,28 @@
+[api]
+address = ":5001"
+
+[core]
+cache_type = "map"
+db_type = "bolt"
+pool_size = 0
+archive_node = false
+
+[chain]
+ws_endpoint = "wss://forno.celo.org/ws"
+rpc_endpoint = "https://forno.celo.org"
+chainid = 42220
+start_block = 0
+
+[bootstrap]
+ge_registries = [
+    "0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C",
+    "0x0cc9f4fff962def35bb34a53691180b13e653030",
+]
+watchlist = [""]
+blacklist = ["0x765DE816845861e75A25fCA122bb6898B8B1282a"]
+
+[jetstream]
+enable = true
+endpoint = "nats://127.0.0.1:4222"
+persist_duration_hrs = 48
+dedup_duration_hrs = 6
