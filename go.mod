@@ -13,7 +13,7 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v0.1.0
 	github.com/knadh/koanf/providers/file v0.1.0
-	github.com/knadh/koanf/v2 v2.1.0
+	github.com/knadh/koanf/v2 v2.1.1
 	github.com/nats-io/nats.go v1.34.1
 	github.com/puzpuzpuz/xsync/v3 v3.1.0
 	github.com/uptrace/bunrouter v1.0.21
