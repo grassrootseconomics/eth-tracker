@@ -46,6 +46,11 @@ nano .env.example
 mv .env.example .env
 ```
 
+Special env variables:
+
+* DEV=*
+* FORCE_BACKFILL=*
+
 Refer to [`config.toml`](config.toml) to understand different config value settings.
 
 
@@ -53,6 +58,30 @@ Refer to [`config.toml`](config.toml) to understand different config value setti
 
 ```bash
 docker run --env-file .env -p 127.0.0.1:5001:5001 celo-tracker:latest
+```
+
+## Processing NATS messages
+
+### JSON structure
+
+```js
+{
+    "block": Number,
+    "contractAddress": String,
+    "success": Boolean,
+    "timetamp" Number,
+    "transactionHash": String,
+    "transactionType": String,
+    "payload": Object
+}
+```
+
+### Monitoring with NATS CLI
+
+Install NATS CLI from [here](https://github.com/nats-io/natscli?tab=readme-ov-file#installation).
+
+```bash
+nats subscribe "TRACKER.*"
 ```
 
 ## Caveats
