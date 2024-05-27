@@ -38,7 +38,7 @@ docker ps
 
 ### 3. Update config values
 
-See `.env.example` on how to override default values defined in `config.toml` using env varaibles. Alternatively, mount your own config.toml either during build time or Docker runtime.
+See `.env.example` on how to override default values defined in `config.toml` using env variables. Alternatively, mount your own config.toml either during build time or Docker runtime.
 
 ```bash
 # Override only specific config values
