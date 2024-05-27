@@ -17,7 +17,7 @@ require (
 	github.com/nats-io/nats.go v1.34.1
 	github.com/puzpuzpuz/xsync/v3 v3.1.0
 	github.com/uptrace/bunrouter v1.0.21
-	go.etcd.io/bbolt v1.3.9
+	go.etcd.io/bbolt v1.3.10
 )
 
 require (
