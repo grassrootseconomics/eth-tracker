@@ -1,0 +1,9 @@
+services:
+  nats:
+    image: nats:2
+    restart: unless-stopped
+    command: -js -sd /tmp/nats/data -m 8222
+    ports:
+      - 0.0.0.0:4222:4222
+      - 0.0.0.0:8222:8222
+    

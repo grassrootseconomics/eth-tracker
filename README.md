@@ -15,6 +15,8 @@ It applies deduplication at the NATS level, making it safe to run in a distribut
 * NATS server
 * Access to a Celo RPC node
 
+See [docker-compose.yaml](dev/docker-compose.yaml) for an example on how to run a deploy a single instance.
+
 ### 1. Build the Docker image
 
 We provide pre-built images for `linux/amd64`. See the packages tab on Github.
@@ -30,11 +32,7 @@ docker images
 
 ### 2. Run NATS
 
-```bash
-cd dev
-docker compose up -d
-docker ps
-```
+For an example, see `dev/docker-compose.nats.yaml`.
 
 ### 3. Update config values
 

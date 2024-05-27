@@ -2,7 +2,27 @@ services:
   nats:
     image: nats:2
     restart: unless-stopped
-    command: -js -sd /tmp/nats/data -m 8222
+    command: -js -sd /nats/data -m 8222
     ports:
-      - 0.0.0.0:4222:4222
-      - 0.0.0.0:8222:8222
+      - 127.0.0.1:4222:4222
+      - 127.0.0.1:8222:8222
+    volumes:
+      - celo-tracker-nats:/nats/data      
+  celo-tracker:
+    image: celo-tracker:latest
+    restart: unless-stopped
+    depends_on:
+      - nats
+    environment:
+      - DEV=true
+      - TRACKER_JETSTREAM__ENDPOINT=nats://nats:4222
+    ports:
+      - 127.0.0.1:5001:5001
+    volumes:
+      - celo-tracker-db:/service/db
+
+volumes:
+  celo-tracker-nats:
+    driver: local
+  celo-tracker-db:
+    driver: local
