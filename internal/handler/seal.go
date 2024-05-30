@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/grassrootseconomics/celo-tracker/internal/event"
 	"github.com/grassrootseconomics/celo-tracker/internal/pub"
+	"github.com/grassrootseconomics/celo-tracker/pkg/event"
 	"github.com/grassrootseconomics/w3-celo"
 )
 

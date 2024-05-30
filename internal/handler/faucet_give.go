@@ -5,8 +5,8 @@ import (
 	"math/big"
 
 	"github.com/celo-org/celo-blockchain/common"
-	"github.com/grassrootseconomics/celo-tracker/internal/event"
 	"github.com/grassrootseconomics/celo-tracker/internal/pub"
+	"github.com/grassrootseconomics/celo-tracker/pkg/event"
 	"github.com/grassrootseconomics/celoutils/v3"
 	"github.com/grassrootseconomics/w3-celo"
 )

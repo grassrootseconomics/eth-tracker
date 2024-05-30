@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/grassrootseconomics/celo-tracker/internal/event"
+	"github.com/grassrootseconomics/celo-tracker/pkg/event"
 )
 
 type consolePub struct {
