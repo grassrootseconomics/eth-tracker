@@ -1,6 +1,7 @@
 /**
 !/cmd
 !/internal
+!/pkg
 !/LICENSE
 !/config.toml
 !/go.*
