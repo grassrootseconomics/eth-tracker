@@ -18,8 +18,8 @@ const burnEventName = "TOKEN_BURN"
 
 var (
 	tokenBurnTopicHash = w3.H("0xcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca5")
-	tokenBurnEvent     = w3.MustNewEvent("tokenBurn(address indexed _tokenBurner, uint256 _value)")
-	tokenBurnToSig     = w3.MustNewFunc("tokenBurn(uint256)", "bool")
+	tokenBurnEvent     = w3.MustNewEvent("Burn(address indexed _tokenBurner, uint256 _value)")
+	tokenBurnToSig     = w3.MustNewFunc("Burn(uint256)", "bool")
 )
 
 func NewTokenBurnHandler(pub pub.Pub) *tokenBurnHandler {
