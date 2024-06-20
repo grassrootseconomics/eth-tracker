@@ -10,6 +10,7 @@ import (
 
 type (
 	QueueOpts struct {
+		QueueSize int
 		Logg      *slog.Logger
 		Processor *processor.Processor
 		Pool      *pond.WorkerPool
@@ -27,7 +28,7 @@ type (
 func New(o QueueOpts) *Queue {
 	return &Queue{
 		logg:        o.Logg,
-		processChan: make(chan uint64, 17_280),
+		processChan: make(chan uint64, o.QueueSize),
 		stopSignal:  make(chan interface{}),
 		processor:   o.Processor,
 		pool:        o.Pool,

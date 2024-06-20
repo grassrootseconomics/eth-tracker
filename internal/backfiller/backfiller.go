@@ -12,24 +12,23 @@ import (
 
 type (
 	BackfillerOpts struct {
-		DB    db.DB
-		Logg  *slog.Logger
-		Queue *queue.Queue
+		MaxQueueSize int
+		DB           db.DB
+		Logg         *slog.Logger
+		Queue        *queue.Queue
 	}
 
 	backfiller struct {
-		db     db.DB
-		logg   *slog.Logger
-		queue  *queue.Queue
-		stopCh chan struct{}
-		ticker *time.Ticker
+		maxQueueSize int
+		db           db.DB
+		logg         *slog.Logger
+		queue        *queue.Queue
+		stopCh       chan struct{}
+		ticker       *time.Ticker
 	}
 )
 
-const (
-	verifierInterval = 20 * time.Second
-	epochBlocksCount = 17_280
-)
+const verifierInterval = 20 * time.Second
 
 func New(o BackfillerOpts) *backfiller {
 	return &backfiller{
@@ -58,6 +57,9 @@ func (b *backfiller) Start() {
 				if err := b.Run(true); err != nil {
 					b.logg.Error("verifier tick run error", "err", err)
 				}
+				b.logg.Debug("verifier successful run", "queue_size", b.queue.Size())
+			} else {
+				b.logg.Debug("skipping verifier run")
 			}
 		}
 	}
@@ -84,7 +86,7 @@ func (b *backfiller) Run(skipLatest bool) error {
 	missingBlocksCount := missingBlocks.Count()
 
 	if missingBlocksCount > 0 {
-		if missingBlocksCount >= epochBlocksCount {
+		if missingBlocksCount >= uint(b.maxQueueSize) {
 			b.logg.Warn("large number of blocks missing this may result in degraded RPC performance set FORCE_BACKFILL=* to continue", "missing_blocks", missingBlocksCount)
 			_, ok := os.LookupEnv("FORCE_BACKFILL")
 			if !ok {

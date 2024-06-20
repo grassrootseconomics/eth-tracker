@@ -27,7 +27,12 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-const defaultGracefulShutdownPeriod = time.Second * 30
+const (
+	defaultGracefulShutdownPeriod = time.Second * 30
+
+	// 24 hrs worth of blocks
+	defaultMaxQueueSize = 17_280
+)
 
 var (
 	build = "dev"
@@ -113,8 +118,11 @@ func main() {
 	poolOpts := pool.PoolOpts{
 		Logg:        lo,
 		WorkerCount: ko.Int("core.pool_size"),
+		// Immidiately allow processing of upto 6 hrs of missing blocks
+		BlocksBuffer: defaultMaxQueueSize / 4,
 	}
 	if ko.Int("core.pool_size") <= 0 {
+		// TODO: Benchamrk to determine optimum size
 		poolOpts.WorkerCount = runtime.NumCPU() * 3
 	}
 	workerPool := pool.NewPool(poolOpts)
@@ -155,9 +163,10 @@ func main() {
 	}
 
 	backfiller := backfiller.New(backfiller.BackfillerOpts{
-		DB:    db,
-		Logg:  lo,
-		Queue: queue,
+		MaxQueueSize: defaultMaxQueueSize,
+		DB:           db,
+		Logg:         lo,
+		Queue:        queue,
 	})
 
 	apiServer := &http.Server{

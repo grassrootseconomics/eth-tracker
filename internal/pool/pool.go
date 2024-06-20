@@ -8,14 +8,15 @@ import (
 )
 
 type PoolOpts struct {
-	Logg        *slog.Logger
-	WorkerCount int
+	Logg         *slog.Logger
+	WorkerCount  int
+	BlocksBuffer int
 }
 
 func NewPool(o PoolOpts) *pond.WorkerPool {
 	return pond.New(
 		o.WorkerCount,
-		1,
+		o.BlocksBuffer,
 		pond.Strategy(pond.Balanced()),
 		pond.PanicHandler(panicHandler(o.Logg)),
 	)
