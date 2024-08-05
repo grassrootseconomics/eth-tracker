@@ -32,11 +32,12 @@ const verifierInterval = 20 * time.Second
 
 func New(o BackfillerOpts) *backfiller {
 	return &backfiller{
-		db:     o.DB,
-		logg:   o.Logg,
-		queue:  o.Queue,
-		stopCh: make(chan struct{}),
-		ticker: time.NewTicker(verifierInterval),
+		maxQueueSize: o.MaxQueueSize,
+		db:           o.DB,
+		logg:         o.Logg,
+		queue:        o.Queue,
+		stopCh:       make(chan struct{}),
+		ticker:       time.NewTicker(verifierInterval),
 	}
 }
 
@@ -87,7 +88,7 @@ func (b *backfiller) Run(skipLatest bool) error {
 
 	if missingBlocksCount > 0 {
 		if missingBlocksCount >= uint(b.maxQueueSize) {
-			b.logg.Warn("large number of blocks missing this may result in degraded RPC performance set FORCE_BACKFILL=* to continue", "missing_blocks", missingBlocksCount)
+			b.logg.Warn("large number of blocks missing this may result in degraded RPC performance set FORCE_BACKFILL=* to continue", "missing_blocks", missingBlocksCount, "max_queue_size", b.maxQueueSize)
 			_, ok := os.LookupEnv("FORCE_BACKFILL")
 			if !ok {
 				os.Exit(0)
