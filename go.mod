@@ -7,8 +7,8 @@ require (
 	github.com/alitto/pond v1.8.3
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/celo-org/celo-blockchain v1.8.4
-	github.com/grassrootseconomics/celoutils/v3 v3.0.1
-	github.com/grassrootseconomics/w3-celo v0.17.2
+	github.com/grassrootseconomics/celoutils/v3 v3.2.0
+	github.com/grassrootseconomics/w3-celo v0.19.0
 	github.com/kamikazechaser/common v0.2.0
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v0.1.0
