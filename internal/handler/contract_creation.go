@@ -17,6 +17,7 @@ func HandleContractCreation() router.ContractCreationHandlerFunc {
 			Success:         ccp.Success,
 			Timestamp:       ccp.Timestamp,
 			TxHash:          ccp.TxHash,
+			TxType:          contractCreationEventName,
 			Payload: map[string]any{
 				"from": ccp.From,
 			},
