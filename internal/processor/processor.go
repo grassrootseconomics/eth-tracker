@@ -54,7 +54,7 @@ func (p *Processor) ProcessBlock(ctx context.Context, blockNumber uint64) error 
 	}
 
 	for _, receipt := range receipts {
-		if receipt.Status > 0 {
+		if receipt.Status == 1 {
 			for _, log := range receipt.Logs {
 				exists, err := p.cache.Exists(ctx, log.Address.Hex())
 				if err != nil {
@@ -72,35 +72,96 @@ func (p *Processor) ProcessBlock(ctx context.Context, blockNumber uint64) error 
 					}
 				}
 			}
-		} else {
-			tx, err := p.chain.GetTransaction(ctx, receipt.TxHash)
-			if err != nil && !errors.Is(err, context.Canceled) {
-				return fmt.Errorf("get transaction error: tx %s: %v", receipt.TxHash.Hex(), err)
-			}
 
-			if tx.To() != nil {
-				exists, err := p.cache.Exists(ctx, tx.To().Hex())
+			if receipt.ContractAddress != (common.Address{}) {
+				tx, err := p.chain.GetTransaction(ctx, receipt.TxHash)
+				if err != nil && !errors.Is(err, context.Canceled) {
+					return fmt.Errorf("get transaction error: tx %s: %v", receipt.TxHash.Hex(), err)
+				}
+
+				from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+				if err != nil {
+					return fmt.Errorf("transaction decode error: tx %s: %v", receipt.TxHash.Hex(), err)
+				}
+
+				exists, err := p.cache.Exists(ctx, from.Hex())
 				if err != nil {
 					return err
 				}
-				if exists {
+
+				if exists && tx.To() != nil {
+					if err := p.router.ProcessContractCreation(
+						ctx,
+						router.ContractCreationPayload{
+							From:            from.Hex(),
+							Block:           blockNumber,
+							ContractAddress: tx.To().Hex(),
+							Timestamp:       block.Time(),
+							TxHash:          receipt.TxHash.Hex(),
+							Success:         true,
+						},
+					); err != nil && !errors.Is(err, context.Canceled) {
+						return fmt.Errorf("route success contract creation error: tx %s: %v", receipt.TxHash.Hex(), err)
+					}
+				}
+			}
+
+			if receipt.Status == 0 {
+				tx, err := p.chain.GetTransaction(ctx, receipt.TxHash)
+				if err != nil && !errors.Is(err, context.Canceled) {
+					return fmt.Errorf("get transaction error: tx %s: %v", receipt.TxHash.Hex(), err)
+				}
+
+				if tx.To() == nil {
 					from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
 					if err != nil {
 						return fmt.Errorf("transaction decode error: tx %s: %v", receipt.TxHash.Hex(), err)
 					}
 
-					if err := p.router.ProcessInputData(
-						ctx,
-						router.InputDataPayload{
-							From:            from.Hex(),
-							InputData:       common.Bytes2Hex(tx.Data()),
-							Block:           blockNumber,
-							ContractAddress: tx.To().Hex(),
-							Timestamp:       block.Time(),
-							TxHash:          receipt.TxHash.Hex(),
-						},
-					); err != nil && !errors.Is(err, context.Canceled) {
-						return fmt.Errorf("route revert transaction error: tx %s: %v", receipt.TxHash.Hex(), err)
+					exists, err := p.cache.Exists(ctx, from.Hex())
+					if err != nil {
+						return err
+					}
+
+					if exists {
+						if err := p.router.ProcessContractCreation(
+							ctx,
+							router.ContractCreationPayload{
+								From:            from.Hex(),
+								Block:           blockNumber,
+								ContractAddress: tx.To().Hex(),
+								Timestamp:       block.Time(),
+								TxHash:          receipt.TxHash.Hex(),
+								Success:         false,
+							},
+						); err != nil && !errors.Is(err, context.Canceled) {
+							return fmt.Errorf("route reverted contract creation error: tx %s: %v", receipt.TxHash.Hex(), err)
+						}
+					}
+				} else {
+					exists, err := p.cache.Exists(ctx, tx.To().Hex())
+					if err != nil {
+						return err
+					}
+					if exists {
+						from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+						if err != nil {
+							return fmt.Errorf("transaction decode error: tx %s: %v", receipt.TxHash.Hex(), err)
+						}
+
+						if err := p.router.ProcessInputData(
+							ctx,
+							router.InputDataPayload{
+								From:            from.Hex(),
+								InputData:       common.Bytes2Hex(tx.Data()),
+								Block:           blockNumber,
+								ContractAddress: tx.To().Hex(),
+								Timestamp:       block.Time(),
+								TxHash:          receipt.TxHash.Hex(),
+							},
+						); err != nil && !errors.Is(err, context.Canceled) {
+							return fmt.Errorf("route revert transaction error: tx %s: %v", receipt.TxHash.Hex(), err)
+						}
 					}
 				}
 			}
