@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/grassrootseconomics/celoutils/v3"
 	"github.com/grassrootseconomics/eth-tracker/internal/chain"
-	"github.com/grassrootseconomics/ethutils"
-	"github.com/lmittmann/w3"
-	"github.com/lmittmann/w3/module/eth"
+	"github.com/grassrootseconomics/w3-celo"
+	"github.com/grassrootseconomics/w3-celo/module/eth"
 )
 
 func bootstrapCache(
@@ -30,14 +30,14 @@ func bootstrapCache(
 	defer cancel()
 
 	for _, registry := range registries {
-		registryMap, err := chain.Provider().RegistryMap(ctx, ethutils.HexToAddress(registry))
+		registryMap, err := chain.Provider().RegistryMap(ctx, celoutils.HexToAddress(registry))
 		if err != nil {
 			lo.Error("could not fetch registry", "registry", registry, "error", err)
 			os.Exit(1)
 		}
 
 		for k, v := range registryMap {
-			if v != ethutils.ZeroAddress {
+			if v != celoutils.ZeroAddress {
 				if err := cache.Add(ctx, v.Hex()); err != nil {
 					return err
 				}
@@ -46,7 +46,7 @@ func bootstrapCache(
 			}
 		}
 
-		if accountIndex := registryMap[ethutils.AccountIndex]; accountIndex != ethutils.ZeroAddress {
+		if accountIndex := registryMap[celoutils.AccountIndex]; accountIndex != celoutils.ZeroAddress {
 			if err := cache.Add(ctx, accountIndex.Hex()); err != nil {
 				return err
 			}
@@ -67,7 +67,7 @@ func bootstrapCache(
 				}
 
 				for _, address := range accountIndexBatch {
-					if address != ethutils.ZeroAddress {
+					if address != celoutils.ZeroAddress {
 						if err := cache.Add(ctx, address.Hex()); err != nil {
 							return err
 						}
@@ -78,7 +78,7 @@ func bootstrapCache(
 			}
 		}
 
-		if tokenIndex := registryMap[ethutils.TokenIndex]; tokenIndex != ethutils.ZeroAddress {
+		if tokenIndex := registryMap[celoutils.TokenIndex]; tokenIndex != celoutils.ZeroAddress {
 			if err := cache.Add(ctx, tokenIndex.Hex()); err != nil {
 				return err
 			}
@@ -99,7 +99,7 @@ func bootstrapCache(
 				}
 
 				for _, address := range tokenIndexBatch {
-					if address != ethutils.ZeroAddress {
+					if address != celoutils.ZeroAddress {
 						if err := cache.Add(ctx, address.Hex()); err != nil {
 							return err
 						}
@@ -110,7 +110,7 @@ func bootstrapCache(
 			}
 		}
 
-		if poolIndex := registryMap[ethutils.PoolIndex]; poolIndex != ethutils.ZeroAddress {
+		if poolIndex := registryMap[celoutils.PoolIndex]; poolIndex != celoutils.ZeroAddress {
 			if err := cache.Add(ctx, poolIndex.Hex()); err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func bootstrapCache(
 					break
 				}
 				for _, address := range poolIndexBatch {
-					if address != ethutils.ZeroAddress {
+					if address != celoutils.ZeroAddress {
 						if err := cache.Add(ctx, address.Hex()); err != nil {
 							return err
 						}
@@ -144,14 +144,14 @@ func bootstrapCache(
 						if err != nil {
 							return err
 						}
-						if priceQuoter != ethutils.ZeroAddress {
+						if priceQuoter != celoutils.ZeroAddress {
 							if err := cache.Add(ctx, priceQuoter.Hex()); err != nil {
 								return err
 							}
 
 							lo.Debug("cached pool index quoter", "pool", poolIndex.Hex(), "address", priceQuoter.Hex())
 						}
-						if poolTokenIndex != ethutils.ZeroAddress {
+						if poolTokenIndex != celoutils.ZeroAddress {
 							if err := cache.Add(ctx, poolTokenIndex.Hex()); err != nil {
 								return err
 							}
@@ -171,7 +171,7 @@ func bootstrapCache(
 									break
 								}
 								for _, address := range poolTokenIndexBatch {
-									if address != ethutils.ZeroAddress {
+									if address != celoutils.ZeroAddress {
 										if err := cache.Add(ctx, address.Hex()); err != nil {
 											return err
 										}
@@ -188,16 +188,16 @@ func bootstrapCache(
 		}
 
 		for _, address := range watchlist {
-			if err := cache.Add(ctx, ethutils.HexToAddress(address).Hex()); err != nil {
+			if err := cache.Add(ctx, celoutils.HexToAddress(address).Hex()); err != nil {
 				return err
 			}
 		}
 		for _, address := range blacklist {
-			if err := cache.Remove(ctx, ethutils.HexToAddress(address).Hex()); err != nil {
+			if err := cache.Remove(ctx, celoutils.HexToAddress(address).Hex()); err != nil {
 				return err
 			}
 		}
-		if err := cache.Remove(ctx, ethutils.ZeroAddress.Hex()); err != nil {
+		if err := cache.Remove(ctx, celoutils.ZeroAddress.Hex()); err != nil {
 			return err
 		}
 		cacheSize, err := cache.Size(ctx)

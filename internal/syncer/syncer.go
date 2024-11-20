@@ -4,8 +4,8 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/celo-org/celo-blockchain"
+	"github.com/celo-org/celo-blockchain/ethclient"
 	"github.com/grassrootseconomics/eth-tracker/db"
 	"github.com/grassrootseconomics/eth-tracker/internal/chain"
 	"github.com/grassrootseconomics/eth-tracker/internal/pool"
@@ -27,7 +27,7 @@ type (
 		db          db.DB
 		ethClient   *ethclient.Client
 		logg        *slog.Logger
-		realtimeSub ethereum.Subscription
+		realtimeSub celo.Subscription
 		pool        *pool.Pool
 		stats       *stats.Stats
 		stopCh      chan struct{}

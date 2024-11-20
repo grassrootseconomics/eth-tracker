@@ -4,7 +4,7 @@ import (
 	"github.com/grassrootseconomics/eth-tracker/internal/cache"
 	"github.com/grassrootseconomics/eth-tracker/internal/handler"
 	"github.com/grassrootseconomics/eth-tracker/pkg/router"
-	"github.com/lmittmann/w3"
+	"github.com/grassrootseconomics/w3-celo"
 )
 
 func bootstrapEventRouter(cacheProvider cache.Cache, pubCB router.Callback) *router.Router {

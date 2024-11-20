@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/grassrootseconomics/ethutils"
-	"github.com/lmittmann/w3"
-	"github.com/lmittmann/w3/module/eth"
-	"github.com/lmittmann/w3/w3types"
+	"github.com/celo-org/celo-blockchain/common"
+	"github.com/celo-org/celo-blockchain/core/types"
+	"github.com/celo-org/celo-blockchain/rpc"
+	"github.com/grassrootseconomics/celoutils/v3"
+	"github.com/grassrootseconomics/w3-celo"
+	"github.com/grassrootseconomics/w3-celo/module/eth"
+	"github.com/grassrootseconomics/w3-celo/w3types"
 )
 
 type (
@@ -22,7 +22,7 @@ type (
 	}
 
 	EthRPC struct {
-		provider *ethutils.Provider
+		provider *celoutils.Provider
 	}
 )
 
@@ -32,10 +32,10 @@ func NewRPCFetcher(o EthRPCOpts) (Chain, error) {
 		return nil, err
 	}
 
-	chainProvider := ethutils.NewProvider(
+	chainProvider := celoutils.NewProvider(
 		o.RPCEndpoint,
 		o.ChainID,
-		ethutils.WithClient(customRPCClient),
+		celoutils.WithClient(customRPCClient),
 	)
 
 	return &EthRPC{
@@ -48,7 +48,10 @@ func lowTimeoutRPCClient(rpcEndpoint string) (*w3.Client, error) {
 		Timeout: 10 * time.Second,
 	}
 
-	rpcClient, err := rpc.DialOptions(context.Background(), rpcEndpoint, rpc.WithHTTPClient(httpClient))
+	rpcClient, err := rpc.DialHTTPWithClient(
+		rpcEndpoint,
+		httpClient,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +59,10 @@ func lowTimeoutRPCClient(rpcEndpoint string) (*w3.Client, error) {
 	return w3.NewClient(rpcClient), nil
 }
 
-func (c *EthRPC) GetBlocks(ctx context.Context, blockNumbers []uint64) ([]*types.Block, error) {
+func (c *EthRPC) GetBlocks(ctx context.Context, blockNumbers []uint64) ([]types.Block, error) {
 	blocksCount := len(blockNumbers)
 	calls := make([]w3types.RPCCaller, blocksCount)
-	blocks := make([]*types.Block, blocksCount)
+	blocks := make([]types.Block, blocksCount)
 
 	for i, v := range blockNumbers {
 		calls[i] = eth.BlockByNumber(new(big.Int).SetUint64(v)).Returns(&blocks[i])
@@ -73,18 +76,18 @@ func (c *EthRPC) GetBlocks(ctx context.Context, blockNumbers []uint64) ([]*types
 }
 
 func (c *EthRPC) GetBlock(ctx context.Context, blockNumber uint64) (*types.Block, error) {
-	var block *types.Block
+	var block types.Block
 	blockCall := eth.BlockByNumber(new(big.Int).SetUint64(blockNumber)).Returns(&block)
 
 	if err := c.provider.Client.CallCtx(ctx, blockCall); err != nil {
 		return nil, err
 	}
 
-	return block, nil
+	return &block, nil
 }
 
 func (c *EthRPC) GetLatestBlock(ctx context.Context) (uint64, error) {
-	var latestBlock *big.Int
+	var latestBlock big.Int
 	latestBlockCall := eth.BlockNumber().Returns(&latestBlock)
 
 	if err := c.provider.Client.CallCtx(ctx, latestBlockCall); err != nil {
@@ -95,12 +98,12 @@ func (c *EthRPC) GetLatestBlock(ctx context.Context) (uint64, error) {
 }
 
 func (c *EthRPC) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, error) {
-	var transaction *types.Transaction
+	var transaction types.Transaction
 	if err := c.provider.Client.CallCtx(ctx, eth.Tx(txHash).Returns(&transaction)); err != nil {
 		return nil, err
 	}
 
-	return transaction, nil
+	return &transaction, nil
 }
 
 func (c *EthRPC) GetReceipts(ctx context.Context, blockNumber *big.Int) (types.Receipts, error) {
@@ -113,6 +116,6 @@ func (c *EthRPC) GetReceipts(ctx context.Context, blockNumber *big.Int) (types.R
 	return receipts, nil
 }
 
-func (c *EthRPC) Provider() *ethutils.Provider {
+func (c *EthRPC) Provider() *celoutils.Provider {
 	return c.provider
 }

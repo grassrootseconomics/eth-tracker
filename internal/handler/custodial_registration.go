@@ -3,10 +3,10 @@ package handler
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/celo-org/celo-blockchain/common"
 	"github.com/grassrootseconomics/eth-tracker/pkg/event"
 	"github.com/grassrootseconomics/eth-tracker/pkg/router"
-	"github.com/lmittmann/w3"
+	"github.com/grassrootseconomics/w3-celo"
 )
 
 const custodialRegistrationEventName = "CUSTODIAL_REGISTRATION"

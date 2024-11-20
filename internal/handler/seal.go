@@ -6,7 +6,7 @@ import (
 
 	"github.com/grassrootseconomics/eth-tracker/pkg/event"
 	"github.com/grassrootseconomics/eth-tracker/pkg/router"
-	"github.com/lmittmann/w3"
+	"github.com/grassrootseconomics/w3-celo"
 )
 
 const sealEventName = "SEAL_STATE_CHANGE"
