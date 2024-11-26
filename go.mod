@@ -5,7 +5,7 @@ go 1.23.3
 require (
 	github.com/VictoriaMetrics/metrics v1.35.1
 	github.com/alitto/pond v1.9.2
-	github.com/bits-and-blooms/bitset v1.14.3
+	github.com/bits-and-blooms/bitset v1.17.0
 	github.com/ethereum/go-ethereum v1.14.8
 	github.com/grassrootseconomics/ethutils v1.3.0
 	github.com/kamikazechaser/common v0.2.0
