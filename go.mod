@@ -16,7 +16,7 @@ require (
 	github.com/lmittmann/w3 v0.17.1
 	github.com/nats-io/nats.go v1.36.0
 	github.com/puzpuzpuz/xsync/v3 v3.4.0
-	github.com/redis/rueidis v1.0.48
+	github.com/redis/rueidis v1.0.55
 	github.com/stretchr/testify v1.9.0
 	github.com/uptrace/bunrouter v1.0.22
 	go.etcd.io/bbolt v1.3.11
@@ -57,9 +57,9 @@ require (
 	github.com/valyala/histogram v1.2.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
