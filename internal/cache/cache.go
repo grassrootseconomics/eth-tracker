@@ -50,7 +50,7 @@ func New(o CacheOpts) (Cache, error) {
 	if err := bootstrapCache(
 		o.Chain,
 		cache,
-		[]string{"0xd1FB944748aca327a1ba036B082993D9dd9Bfa0C", "0x0cc9f4fff962def35bb34a53691180b13e653030"},
+		o.Registries,
 		o.Watchlist,
 		o.Blacklist,
 		o.Logg,
