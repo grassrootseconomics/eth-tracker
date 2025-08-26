@@ -17,6 +17,30 @@ var busyContracts = map[string]bool{
 	"0x4F604735c1cF31399C6E711D5962b2B3E0225AD3": true,
 	// cEUR
 	"0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73": true,
+	// cREAL
+	"0xe8537a3d056DA446677B9E9d6c5dB704EaAb4787": true,
+	// eXOF
+	"0x73F93dcc49cB8A239e2032663e9475dd5ef29A08": true,
+	// PUSO
+	"0x105d4A9306D2E55a71d2Eb95B81553AE1dC20d7B": true,
+	// cCOP
+	"0x8A567e2aE79CA692Bd748aB832081C45de4041eA": true,
+	// cGHS
+	"0xfAeA5F3404bbA20D3cc2f8C4B0A888F55a3c7313": true,
+	// cGBP
+	"0xCCF663b1fF11028f0b19058d0f7B674004a40746": true,
+	// cZAR
+	"0x4c35853A3B4e647fD266f4de678dCc8fEC410BF6": true,
+	// cCAD
+	"0xff4Ab19391af240c311c54200a492233052B6325": true,
+	// cAUD
+	"0x7175504C455076F15c04A2F90a8e352281F492F9": true,
+	// cCHF
+	"0xb55a79F398E759E43C95b979163f30eC87Ee131D": true,
+	// cNGN
+	"0xE2702Bd97ee33c88c8f6f92DA3B733608aa76F71": true,
+	// cJPY
+	"0xc45eCF20f3CD864B32D9794d6f76814aE8892e20": true,
 }
 
 func (hc *HandlerContainer) checkWithinNetwork(ctx context.Context, contractAddress string, from string, to string) (bool, error) {
