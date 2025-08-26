@@ -13,6 +13,8 @@ var busyContracts = map[string]bool{
 	"0x456a3D042C0DbD3db53D5489e98dFb038553B0d0": true,
 	// USDC
 	"0xcebA9300f2b948710d2653dD7B07f33A8B32118C": true,
+	// USDGLO
+	"0x4F604735c1cF31399C6E711D5962b2B3E0225AD3": true,
 }
 
 func (hc *HandlerContainer) checkWithinNetwork(ctx context.Context, contractAddress string, from string, to string) (bool, error) {
