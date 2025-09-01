@@ -41,6 +41,8 @@ var busyContracts = map[string]bool{
 	"0xE2702Bd97ee33c88c8f6f92DA3B733608aa76F71": true,
 	// cJPY
 	"0xc45eCF20f3CD864B32D9794d6f76814aE8892e20": true,
+	// axlREGEN
+	"0x2E6C05f1f7D1f4Eb9A088bf12257f1647682b754": true,
 }
 
 func (hc *HandlerContainer) checkWithinNetwork(ctx context.Context, contractAddress string, from string, to string) (bool, error) {
